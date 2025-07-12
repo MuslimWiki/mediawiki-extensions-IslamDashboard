@@ -5,9 +5,7 @@
 [![Version](https://img.shields.io/badge/Version-0.1.0-blue)](CHANGELOG.md)
 [![Code Style](https://img.shields.io/badge/code%20style-MediaWiki-brightgreen)](https://www.mediawiki.org/wiki/Manual:Coding_conventions)
 
-A comprehensive user dashboard extension for MediaWiki, designed to be compatible with the Islam Skin and MediaWiki 1.43+. The dashboard provides users with a personalized interface to access important information and perform common tasks efficiently.
-
-> **Note**: This is the official dashboard extension for the MuslimWiki platform, providing a modern, accessible interface for users to interact with wiki content and features.
+A modern, extensible user dashboard extension for MediaWiki, featuring modular widgets, responsive navigation, and seamless integration with the Islam Skin. The dashboard provides users with a personalized interface to access important information and perform common tasks efficiently.
 
 ## 📋 Table of Contents
 
