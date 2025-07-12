@@ -1,20 +1,22 @@
 <?php
 /**
- * @covers \MediaWiki\Extension\IslamDashboard\Navigation\NavigationManager
+ * @covers \NavigationManager
  */
 
-namespace MediaWiki\Extension\IslamDashboard\Tests\Unit\Navigation;
-
-use MediaWiki\Extension\IslamDashboard\Navigation\NavigationManager;
 use MediaWiki\MediaWikiServices;
 use MediaWikiIntegrationTestCase;
+use PHPUnit\Framework\TestCase;
 use User;
+
+if (!class_exists('NavigationManager')) {
+    require_once __DIR__ . '/../../../includes/Navigation/NavigationManager.php';
+}
 
 /**
  * @group IslamDashboard
- * @coversDefaultClass \MediaWiki\Extension\IslamDashboard\Navigation\NavigationManager
+ * @coversDefaultClass \NavigationManager
  */
-class NavigationManagerTest extends MediaWikiIntegrationTestCase {
+class NavigationManagerTest extends TestCase {
 
     /**
      * @var NavigationManager

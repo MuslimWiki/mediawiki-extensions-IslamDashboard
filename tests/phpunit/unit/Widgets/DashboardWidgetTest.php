@@ -1,21 +1,23 @@
 <?php
 /**
- * @covers \MediaWiki\Extension\IslamDashboard\Widgets\DashboardWidget
+ * @covers \DashboardWidget
  */
 
-namespace MediaWiki\Extension\IslamDashboard\Tests\Unit\Widgets;
-
-use MediaWiki\Extension\IslamDashboard\Widgets\DashboardWidget;
 use MediaWiki\MediaWikiServices;
 use MediaWikiIntegrationTestCase;
+use PHPUnit\Framework\TestCase;
 use RequestContext;
 use Title;
+
+if (!class_exists('DashboardWidget')) {
+    require_once __DIR__ . '/../../../../includes/Widgets/DashboardWidget.php';
+}
 
 /**
  * @group IslamDashboard
  * @coversDefaultClass \MediaWiki\Extension\IslamDashboard\Widgets\DashboardWidget
  */
-class DashboardWidgetTest extends MediaWikiIntegrationTestCase {
+class DashboardWidgetTest extends TestCase {
 
     /**
      * @var DashboardWidget
