@@ -1,0 +1,32 @@
+<div class="dashboard-widget {{widgetClass}}" id="{{widgetId}}">
+    <div class="widget-header">
+        <h3 class="widget-title">{{header.title}}</h3>
+        <p class="widget-subtitle">{{header.subtitle}}</p>
+        {{#headerActions}}
+        <div class="widget-actions">
+            {{#headerActions.actions}}
+            <a href="{{url}}" class="widget-action" title="{{title}}">{{icon}}{{^icon}}{{text}}{{/icon}}</a>
+            {{/headerActions.actions}}
+        </div>
+        {{/headerActions}}
+    </div>
+    
+    <div class="widget-content">
+        {{> @partial-block }}
+    </div>
+    
+    {{#footer}}
+    <div class="widget-footer">
+        {{#footer.text}}
+        <p>{{footer.text}}</p>
+        {{/footer.text}}
+        {{#footer.actions}}
+        <div class="widget-footer-actions">
+            {{#footer.actions.items}}
+            <a href="{{url}}" class="widget-footer-action">{{text}}</a>
+            {{/footer.actions.items}}
+        </div>
+        {{/footer.actions}}
+    </div>
+    {{/footer}}
+</div>
