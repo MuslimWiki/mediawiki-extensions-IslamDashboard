@@ -1,46 +1,72 @@
 <?php
 /**
- * @covers \NavigationManager
+ * @covers \MediaWiki\Extension\IslamDashboard\Navigation\NavigationManager
  */
 
+namespace MediaWiki\Extension\IslamDashboard\Tests\Unit\Navigation;
+
+namespace MediaWiki\Extension\IslamDashboard\Tests\Unit\Navigation;
+
+use MediaWiki\Extension\IslamDashboard\Navigation\NavigationManager;
 use MediaWiki\MediaWikiServices;
 use MediaWikiIntegrationTestCase;
-use PHPUnit\Framework\TestCase;
-use User;
 
-if (!class_exists('NavigationManager')) {
-    require_once __DIR__ . '/../../../includes/Navigation/NavigationManager.php';
-}
+/**
+ * @covers \MediaWiki\Extension\IslamDashboard\Navigation\NavigationManager
+ * @group IslamDashboard
+ */
 
 /**
  * @group IslamDashboard
  * @coversDefaultClass \NavigationManager
  */
-class NavigationManagerTest extends TestCase {
+class NavigationManagerTest extends MediaWikiIntegrationTestCase {
 
-    /**
-     * @var NavigationManager
-     */
+    /** @var NavigationManager */
     private $navManager;
 
     protected function setUp(): void {
         parent::setUp();
+        
+        // Set up test configuration
+        $this->setMwGlobals([
+            'wgIslamDashboardConfig' => [
+                'enabled' => true,
+                'defaultLayout' => 'default',
+                'allowedWidgets' => ['TestWidget']
+            ]
+        ]);
+        
+        // Create a test instance
         $this->navManager = NavigationManager::getInstance();
         
         // Reset the navigation structure before each test
-        $reflection = new \ReflectionClass( $this->navManager );
-        $property = $reflection->getProperty( 'navigation' );
-        $property->setAccessible( true );
-        $property->setValue( $this->navManager, [] );
+        $reflection = new \ReflectionClass($this->navManager);
+        $property = $reflection->getProperty('navigation');
+        $property->setAccessible(true);
+        $property->setValue($this->navManager, []);
     }
 
     /**
      * @covers ::getInstance
      */
+    /**
+     * @covers ::getInstance
+     */
     public function testGetInstance() {
+        $this->assertInstanceOf(
+            NavigationManager::class,
+            $this->navManager,
+            'getInstance should return a NavigationManager instance'
+        );
+
         $instance1 = NavigationManager::getInstance();
         $instance2 = NavigationManager::getInstance();
-        $this->assertSame( $instance1, $instance2, 'getInstance should return the same instance' );
+        $this->assertEquals(
+            $instance1, 
+            $instance2, 
+            'getInstance should return the same instance'
+        );
     }
 
     /**
@@ -125,7 +151,7 @@ class NavigationManagerTest extends TestCase {
         
         // Verify the section was registered with its items
         $this->assertArrayHasKey( 'test-section', $navigation );
-        $this->assertCount( 2, $navigation['test-section']['items'] );
+        $this->assertEquals( 2, count( $navigation['test-section']['items'] ) );
         $this->assertArrayHasKey( 'item1', $navigation['test-section']['items'] );
         $this->assertArrayHasKey( 'item2', $navigation['test-section']['items'] );
     }

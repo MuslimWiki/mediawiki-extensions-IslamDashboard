@@ -1,50 +1,61 @@
 <?php
 /**
- * @covers \NavigationRenderer
+ * @covers \MediaWiki\Extension\IslamDashboard\Navigation\NavigationRenderer
  */
 
+namespace MediaWiki\Extension\IslamDashboard\Tests\Unit\Navigation;
+
+use MediaWiki\Extension\IslamDashboard\Navigation\NavigationManager;
+use MediaWiki\Extension\IslamDashboard\Navigation\NavigationRenderer;
 use MediaWiki\MediaWikiServices;
-use PHPUnit\Framework\TestCase;
+use MediaWikiIntegrationTestCase;
 use RequestContext;
 use User;
 
-if (!class_exists('NavigationManager')) {
-    require_once __DIR__ . '/../../../includes/Navigation/NavigationManager.php';
-}
-if (!class_exists('NavigationRenderer')) {
-    require_once __DIR__ . '/../../../includes/Navigation/NavigationRenderer.php';
-}
-
 /**
  * @group IslamDashboard
- * @coversDefaultClass \NavigationRenderer
+ * @coversDefaultClass \MediaWiki\Extension\IslamDashboard\Navigation\NavigationRenderer
  */
-class NavigationRendererTest extends TestCase {
+class NavigationRendererTest extends MediaWikiIntegrationTestCase {
 
-    /**
-     * @var NavigationManager
-     */
+    /** @var NavigationManager */
     private $navManager;
 
-    /**
-     * @var NavigationRenderer
-     */
+    /** @var NavigationRenderer */
     private $navRenderer;
+
+    /** @var User */
+    private $testUser;
 
     protected function setUp(): void {
         parent::setUp();
+
+        // Set up test configuration
+        $this->setMwGlobals([
+            'wgIslamDashboardConfig' => [
+                'enabled' => true,
+                'defaultLayout' => 'default',
+                'allowedWidgets' => ['TestWidget']
+            ]
+        ]);
+        
+        // Create a test user
+        $this->testUser = $this->getTestUser()->getUser();
         
         // Set up navigation manager with test data
         $this->navManager = NavigationManager::getInstance();
         
         // Reset the navigation structure before each test
-        $reflection = new \ReflectionClass( $this->navManager );
-        $property = $reflection->getProperty( 'navigation' );
-        $property->setAccessible( true );
-        $property->setValue( $this->navManager, [] );
+        $reflection = new \ReflectionClass($this->navManager);
+        $property = $reflection->getProperty('navigation');
+        $property->setAccessible(true);
+        $property->setValue($this->navManager, []);
+        
+        // Initialize the renderer with navigation manager
+        $this->navRenderer = new NavigationRenderer($this->navManager);
         
         // Add test navigation items
-        $this->navManager->registerNavigationSection( 'test-section', [
+        $this->navManager->registerNavigationSection('test-section', [
             'label' => 'Test Section',
             'icon' => 'test-icon',
             'permission' => 'read',
@@ -190,28 +201,32 @@ class NavigationRendererTest extends TestCase {
      */
     public function testIsItemActive() {
         // Test exact path match
-        $this->assertTrue( $this->invokeMethod( $this->navRenderer, 'isItemActive', [
+        $result = $this->invokeMethod( $this->navRenderer, 'isItemActive', [
             [ 'href' => '/wiki/Test' ],
             '/wiki/Test'
-        ]));
+        ]);
+        $this->assertTrue( $result, 'Should be active when path exactly matches' );
         
         // Test with query parameters
-        $this->assertTrue( $this->invokeMethod( $this->navRenderer, 'isItemActive', [
+        $result = $this->invokeMethod( $this->navRenderer, 'isItemActive', [
             [ 'href' => '/wiki/Test?foo=bar' ],
             '/wiki/Test?foo=bar'
-        ]));
+        ]);
+        $this->assertTrue( $result, 'Should be active when current path matches with query parameters' );
         
         // Test with different paths
-        $this->assertFalse( $this->invokeMethod( $this->navRenderer, 'isItemActive', [
+        $result = $this->invokeMethod( $this->navRenderer, 'isItemActive', [
             [ 'href' => '/wiki/Test' ],
             '/wiki/Other'
-        ]));
+        ]);
+        $this->assertFalse( $result, 'Should not be active when current path does not match' );
         
         // Test with active pattern
-        $this->assertTrue( $this->invokeMethod( $this->navRenderer, 'isItemActive', [
+        $result = $this->invokeMethod( $this->navRenderer, 'isItemActive', [
             [ 'activePattern' => '#^/wiki/Test#' ],
             '/wiki/Test/Subpage'
-        ]));
+        ]);
+        $this->assertTrue( $result, 'Should be active when pattern matches' );
     }
     
     /**

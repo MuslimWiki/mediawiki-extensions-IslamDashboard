@@ -134,7 +134,8 @@ class SpecialDashboard extends SpecialPage {
      * @return string HTML for the navigation menu
      */
     private function getNavigationMenuHTML() {
-        $navManager = new \MediaWiki\Extension\IslamDashboard\Navigation\NavigationManager();
+        // Get the singleton instance of NavigationManager
+        $navManager = \MediaWiki\Extension\IslamDashboard\Navigation\NavigationManager::getInstance();
         $navRenderer = new \MediaWiki\Extension\IslamDashboard\Navigation\NavigationRenderer($navManager);
         
         // Render the navigation using NavigationRenderer

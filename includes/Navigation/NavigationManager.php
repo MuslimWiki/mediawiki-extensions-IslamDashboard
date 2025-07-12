@@ -132,13 +132,17 @@ class NavigationManager {
      * Initialize the navigation structure
      */
     private function initializeNavigation(): void {
-        global $wgHooks;
-        
         // Start with default navigation
         $this->navigation = $this->defaultNavigation;
         
-        // Allow other extensions to modify the navigation
-        $wgHooks['IslamDashboardNavigation'][] = [ $this, 'onNavigationInitialized' ];
+        // Get the HookContainer service
+        $hookContainer = \MediaWiki\MediaWikiServices::getInstance()->getHookContainer();
+        
+        // Register the hook using HookContainer
+        $hookContainer->register(
+            'IslamDashboardNavigation',
+            [ $this, 'onNavigationInitialized' ]
+        );
         
         // Sort items within each section
         $this->sortNavigationItems();

@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+### Changed
+- Updated hook system to use HookContainer instead of $wgHooks
+- Improved test coverage for navigation and widget systems
+- Enhanced documentation for hook usage and testing
 
 ## [0.1.0] - 2025-07-12
 ### Added

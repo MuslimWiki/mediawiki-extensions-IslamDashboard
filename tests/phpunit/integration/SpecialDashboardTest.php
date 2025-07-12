@@ -7,6 +7,7 @@ namespace MediaWiki\Extension\IslamDashboard\Tests\Integration;
 
 use MediaWiki\Extension\IslamDashboard\SpecialDashboard;
 use MediaWiki\MediaWikiServices;
+use MediaWiki\Tests\Integration\Permissions\MockAuthorityTrait;
 use MediaWikiIntegrationTestCase;
 use RequestContext;
 use Title;
@@ -18,14 +19,26 @@ use User;
  * @group Database
  */
 class SpecialDashboardTest extends MediaWikiIntegrationTestCase {
-
-    /**
-     * @var SpecialDashboard
-     */
+    use MockAuthorityTrait;
+    
+    /** @var SpecialDashboard */
     private $specialPage;
+    
+    /** @var User */
+    private $testUser;
+    
+    /** @var RequestContext */
+    private $context;
+    
+    /** @var array */
+    private $originalConfig;
 
     protected function setUp(): void {
         parent::setUp();
+        
+        // Store original config
+        global $wgIslamDashboardConfig;
+        $this->originalConfig = $wgIslamDashboardConfig;
         
         // Set up test configuration
         $this->setMwGlobals( [
@@ -36,17 +49,26 @@ class SpecialDashboardTest extends MediaWikiIntegrationTestCase {
             ]
         ]);
         
-        // Create a test user
+        // Create a test user with a name and real name
         $this->testUser = $this->getTestUser()->getUser();
+        $this->testUser->setRealName( 'Test User' );
         
-        // Create a test context
+        // Create a test context with a mock authority
         $this->context = new RequestContext();
         $this->context->setUser( $this->testUser );
-        $this->context->setTitle( Title::newFromText( 'Special:Dashboard' ) );
         
         // Create the special page
         $this->specialPage = new SpecialDashboard();
         $this->specialPage->setContext( $this->context );
+    }
+    
+    protected function tearDown(): void {
+        // Restore original config
+        $this->setMwGlobals( [
+            'wgIslamDashboardConfig' => $this->originalConfig
+        ]);
+        
+        parent::tearDown();
     }
 
     /**
@@ -112,12 +134,24 @@ class SpecialDashboardTest extends MediaWikiIntegrationTestCase {
      * @covers ::getUserProfileHTML
      */
     public function testGetUserProfileHTML() {
+        // Test with a user that has a real name
         $html = $this->specialPage->getUserProfileHTML();
         
-        // Check if user profile contains the username
-        $this->assertStringContainsString( $this->testUser->getName(), $html );
+        // Check if user profile contains the username and real name
+        $this->assertStringContainsString( htmlspecialchars( $this->testUser->getName() ), $html );
+        $this->assertStringContainsString( 'Test User', $html );
         $this->assertStringContainsString( 'user-avatar', $html );
         $this->assertStringContainsString( 'user-info', $html );
+        
+        // Test with a user that doesn't have a real name
+        $userWithoutRealName = $this->getTestUser()->getUser();
+        $this->context->setUser( $userWithoutRealName );
+        $html = $this->specialPage->getUserProfileHTML();
+        
+        // Reset the context user
+        $this->context->setUser( $this->testUser );
+        
+        $this->assertStringContainsString( htmlspecialchars( $userWithoutRealName->getName() ), $html );
     }
 
     /**
@@ -134,6 +168,7 @@ class SpecialDashboardTest extends MediaWikiIntegrationTestCase {
      * @covers ::getWidgetsHTML
      */
     public function testGetWidgetsHTML() {
+        // Test with default configuration
         $html = $this->specialPage->getWidgetsHTML();
         
         // Check if widget containers are present
@@ -141,6 +176,20 @@ class SpecialDashboardTest extends MediaWikiIntegrationTestCase {
         $this->assertStringContainsString( 'welcome-widget', $html );
         $this->assertStringContainsString( 'recent-activity-widget', $html );
         $this->assertStringContainsString( 'quick-actions-widget', $html );
+        
+        // Test with custom widget configuration
+        $this->setMwGlobals( [
+            'wgIslamDashboardConfig' => [
+                'enabled' => true,
+                'defaultLayout' => 'custom',
+                'allowedWidgets' => [ 'WelcomeWidget' ]
+            ]
+        ]);
+        
+        $html = $this->specialPage->getWidgetsHTML();
+        $this->assertStringContainsString( 'welcome-widget', $html );
+        $this->assertStringNotContainsString( 'recent-activity-widget', $html );
+        $this->assertStringNotContainsString( 'quick-actions-widget', $html );
     }
 
     /**
@@ -150,7 +199,7 @@ class SpecialDashboardTest extends MediaWikiIntegrationTestCase {
         $html = $this->specialPage->getWelcomeWidgetHTML();
         
         // Check if welcome widget contains the username
-        $this->assertStringContainsString( $this->testUser->getName(), $html );
+        $this->assertStringContainsString( htmlspecialchars( $this->testUser->getName() ), $html );
         $this->assertStringContainsString( 'welcome-widget', $html );
     }
 
