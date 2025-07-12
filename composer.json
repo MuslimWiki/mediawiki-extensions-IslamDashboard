@@ -1,0 +1,34 @@
+{
+    "name": "mediawiki/islam-dashboard",
+    "type": "mediawiki-extension",
+    "description": "A modern, extensible dashboard for MediaWiki",
+    "license": "GPL-3.0-or-later",
+    "require": {
+        "php": ">=7.4.0",
+        "composer/installers": "^1.0.1",
+        "mustache/mustache": "^2.14"
+    },
+    "require-dev": {
+        "mediawiki/mediawiki-codesniffer": "^39.0",
+        "mediawiki/minus-x": "^1.1",
+        "php-parallel-lint/php-parallel-lint": "^1.2",
+        "php-parallel-lint/php-console-highlighter": "^0.5"
+    },
+    "scripts": {
+        "test": [
+            "parallel-lint --exclude vendor --exclude node_modules .",
+            "phpcs -p -s"
+        ],
+        "fix": "phpcbf"
+    },
+    "autoload": {
+        "classmap": [
+            "includes/",
+            "SpecialDashboard.php"
+        ]
+    },
+    "config": {
+        "allow-plugins": {
+            "composer/installers": true
+        }
+    }

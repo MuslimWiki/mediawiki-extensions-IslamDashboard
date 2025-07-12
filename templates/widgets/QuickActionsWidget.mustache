@@ -1,0 +1,21 @@
+<div class="dashboard-widget quick-actions-widget" id="quick-actions-widget">
+    <div class="widget-header">
+        <h3 class="widget-title">{{header.title}}</h3>
+        <p class="widget-subtitle">{{header.subtitle}}</p>
+    </div>
+    <div class="widget-content">
+        <div class="quick-actions-grid">
+            {{#actions}}
+            <a href="{{url}}" class="quick-action" title="{{title}}" data-action="{{id}}">
+                <div class="quick-action-icon">
+                    {{icon}}
+                </div>
+                <div class="quick-action-label">{{label}}</div>
+                {{#badge}}
+                <span class="quick-action-badge">{{badge}}</span>
+                {{/badge}}
+            </a>
+            {{/actions}}
+        </div>
+    </div>
+</div>

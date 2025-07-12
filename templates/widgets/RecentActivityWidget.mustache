@@ -1,0 +1,63 @@
+<div class="dashboard-widget recent-activity-widget" id="recent-activity-widget">
+    <div class="widget-header">
+        <h3 class="widget-title">{{header.title}}</h3>
+        <p class="widget-subtitle">{{header.subtitle}}</p>
+        {{#viewAllLink}}
+        <a href="{{viewAllLink.url}}" class="widget-view-all">{{viewAllLink.text}}</a>
+        {{/viewAllLink}}
+    </div>
+    <div class="widget-content">
+        {{#hasActivities}}
+        <ul class="activity-list">
+            {{#activities}}
+            <li class="activity-item">
+                <div class="activity-icon">
+                    {{icon}}
+                </div>
+                <div class="activity-details">
+                    <div class="activity-header">
+                        <span class="activity-title">
+                            <a href="{{url}}" class="activity-page">{{title}}</a>
+                            {{#comment}}
+                            <span class="activity-comment">{{comment}}</span>
+                            {{/comment}}
+                        </span>
+                        <span class="activity-time" title="{{formattedTime}}">{{formattedTime}}</span>
+                    </div>
+                    <div class="activity-meta">
+                        <span class="activity-type">{{type}}</span>
+                    </div>
+                </div>
+            </li>
+            {{/activities}}
+        </ul>
+        {{/hasActivities}}
+        {{^hasActivities}}
+        <div class="no-activity">
+            <p>{{noActivitiesMessage}}</p>
+            {{#suggestedActions}}
+            <div class="suggested-actions">
+                <p>{{suggestedActions.message}}</p>
+                <ul class="suggested-actions-list">
+                    {{#suggestedActions.actions}}
+                    <li><a href="{{url}}">{{text}}</a></li>
+                    {{/suggestedActions.actions}}
+                </ul>
+            </div>
+            {{/suggestedActions}}
+        </div>
+        {{/hasActivities}}
+    </div>
+    {{#pagination}}
+    <div class="widget-footer">
+        <div class="pagination">
+            {{#pagination.prev}}
+            <a href="{{url}}" class="pagination-prev" title="{{title}}">{{text}}</a>
+            {{/pagination.prev}}
+            {{#pagination.next}}
+            <a href="{{url}}" class="pagination-next" title="{{title}}">{{text}}</a>
+            {{/pagination.next}}
+        </div>
+    </div>
+    {{/pagination}}
+</div>

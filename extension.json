@@ -1,0 +1,176 @@
+{
+    "name": "IslamDashboard",
+    "version": "0.1.0",
+    "author": ["MuslimWiki Foundation"],
+    "url": "https://github.com/MuslimWiki/IslamDashboard",
+    "descriptionmsg": "islamdashboard-desc",
+    "license-name": "GPL-3.0-or-later",
+    "license": {
+        "name": "GNU General Public License v3.0 or later",
+        "url": "https://www.gnu.org/licenses/gpl-3.0"
+    },
+    "homepage": "https://www.muslim.wiki/",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/MuslimWiki/IslamDashboard.git"
+    },
+    "type": "other",
+    "requires": {
+        "MediaWiki": ">= 1.43.0"
+    },
+    "namespaces": [
+        {
+            "id": 2302,
+            "constant": "NS_ISLAMDASHBOARD",
+            "name": "IslamDashboard",
+            "subpages": true
+        },
+        {
+            "id": 2303,
+            "constant": "NS_ISLAMDASHBOARD_TALK",
+            "name": "IslamDashboard_talk",
+            "subpages": true
+        }
+    ],
+    "AutoloadClasses": {
+        "MediaWiki\\Extension\\IslamDashboard\\ApiIslamDashboard": "includes/ApiIslamDashboard.php",
+        "MediaWiki\\Extension\\IslamDashboard\\SpecialDashboard": "SpecialDashboard.php",
+        "MediaWiki\\Extension\\IslamDashboard\\IslamDashboardHooks": "Hooks.php",
+        "MediaWiki\\Extension\\IslamDashboard\\WidgetManager": "includes/WidgetManager.php",
+        "MediaWiki\\Extension\\IslamDashboard\\Navigation\\NavigationManager": "includes/Navigation/NavigationManager.php",
+        "MediaWiki\\Extension\\IslamDashboard\\Navigation\\NavigationRenderer": "includes/Navigation/NavigationRenderer.php"
+    },
+    "Hooks": {
+        "BeforePageDisplay": "IslamDashboardHooks::onBeforePageDisplay",
+        "SkinTemplateNavigation::Universal": "IslamDashboardHooks::onSkinTemplateNavigationUniversal",
+        "GetPreferences": "IslamDashboardHooks::onGetPreferences",
+        "ResourceLoaderRegisterModules": "IslamDashboardHooks::onResourceLoaderRegisterModules",
+        "PersonalUrls": "IslamDashboardHooks::onPersonalUrls",
+        "LoadExtensionSchemaUpdates": "IslamDashboardHooks::onLoadExtensionSchemaUpdates"
+    },
+    "MessagesDirs": {
+        "IslamDashboard": ["i18n"]
+    },
+    "ResourceModules": {
+        "ext.islamDashboard": {
+            "styles": [
+                "resources/styles/ext.islamDashboard.less",
+                "resources/styles/ext.islamDashboard.css"
+            ],
+            "scripts": [
+                "resources/modules/ext.islamDashboard.js",
+                "resources/modules/ext.islamDashboard.init.js"
+            ],
+            "dependencies": [
+                "mediawiki.api",
+                "mediawiki.util",
+                "mediawiki.jqueryMsg",
+                "mediawiki.cookie",
+                "oojs-ui-core",
+                "oojs-ui-windows",
+                "oojs-ui.styles.icons-interactions",
+                "oojs-ui.styles.icons-moderation",
+                "oojs-ui.styles.icons-content",
+                "codex",
+                "codex-search"
+            ],
+            "targets": ["desktop", "mobile"]
+        },
+        "ext.islamDashboard.navigation": {
+            "styles": [
+                "resources/modules/ext.islamDashboard.navigation.less"
+            ],
+            "scripts": [
+                "resources/modules/ext.islamDashboard.navigation.js",
+                "resources/modules/ext.islamDashboard.navigation.init.js"
+            ],
+            "dependencies": [
+                "mediawiki.api",
+                "mediawiki.util",
+                "mediawiki.jqueryMsg",
+                "mediawiki.storage",
+                "oojs-ui-core",
+                "oojs-ui-widgets",
+                "jquery.throttle-debounce"
+            ],
+            "messages": [
+                "islamdashboard-navigation-label",
+                "islamdashboard-navigation-collapse",
+                "islamdashboard-navigation-expand",
+                "islamdashboard-navigation-toggle-tooltip"
+            ],
+            "targets": ["desktop", "mobile"]
+        },
+        "ext.islamDashboard.widgets.welcome": {
+            "styles": [
+                "resources/styles/widgets/welcomeWidget.less"
+            ],
+            "scripts": [
+                "resources/widgets/ext.islamDashboard.widgets.welcomeWidget.js"
+            ],
+            "dependencies": [
+                "mediawiki.api",
+                "mediawiki.util",
+                "mediawiki.jqueryMsg"
+            ],
+            "targets": ["desktop", "mobile"]
+        },
+        "ext.islamDashboard.widgets.recentActivity": {
+            "styles": [
+                "resources/styles/widgets/recentActivityWidget.less"
+            ],
+            "scripts": [
+                "resources/widgets/ext.islamDashboard.widgets.recentActivityWidget.js"
+            ],
+            "dependencies": [
+                "mediawiki.api",
+                "mediawiki.util",
+                "mediawiki.jqueryMsg"
+            ],
+            "targets": ["desktop", "mobile"]
+        },
+        "ext.islamDashboard.widgets.quickActions": {
+            "styles": [
+                "resources/styles/widgets/quickActionsWidget.less"
+            ],
+            "scripts": [
+                "resources/widgets/ext.islamDashboard.widgets.quickActionsWidget.js"
+            ],
+            "dependencies": [
+                "mediawiki.api",
+                "mediawiki.util",
+                "mediawiki.jqueryMsg"
+            ],
+            "targets": ["desktop", "mobile"]
+        }
+    },
+    "ResourceFileModulePaths": {
+        "localBasePath": "",
+        "remoteExtPath": "IslamDashboard"
+    },
+    "SpecialPages": {
+        "Dashboard": "MediaWiki\\Extension\\IslamDashboard\\SpecialDashboard"
+    },
+    "APIModules": {
+        "islamdashboard": "ApiIslamDashboard"
+    },
+    "config": {
+        "IslamDashboardEnableQuickActions": {
+            "value": true,
+            "description": "Whether to enable quick actions in the dashboard"
+        },
+        "IslamDashboardShowInUserMenu": {
+            "value": true,
+            "description": "Whether to show a link to the dashboard in the user menu"
+        },
+        "IslamDashboardDefaultLayout": {
+            "value": "default",
+            "description": "Default dashboard layout (default, compact, spacious)"
+        },
+        "IslamDashboardEnableAnalytics": {
+            "value": false,
+            "description": "Whether to enable analytics for the dashboard"
+        }
+    },
+    "manifest_version": 2
+}

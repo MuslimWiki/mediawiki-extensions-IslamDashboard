@@ -1,0 +1,59 @@
+<div class="dashboard-widget welcome-widget" id="welcome-widget">
+    <div class="widget-header">
+        <h3 class="widget-title">{{header.title}}</h3>
+        <p class="widget-subtitle">{{header.subtitle}}</p>
+    </div>
+    <div class="widget-content">
+        <div class="welcome-message">
+            <div class="welcome-text">
+                <p>{{welcomeText}}</p>
+            </div>
+            {{#userAvatar}}
+            <div class="user-avatar">
+                <img src="{{userAvatar}}" alt="{{userName}}" class="avatar-image">
+            </div>
+            {{/userAvatar}}
+        </div>
+        
+        {{#showStats}}
+        <div class="stats-container">
+            <div class="stat-item">
+                <div class="stat-value">{{stats.0.value}}</div>
+                <div class="stat-label">{{stats.0.label}}</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value">{{stats.1.value}}</div>
+                <div class="stat-label">{{stats.1.label}}</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value">{{stats.2.value}}</div>
+                <div class="stat-label">{{stats.2.label}}</div>
+            </div>
+        </div>
+        {{/showStats}}
+        
+        <div class="quick-links">
+            <h4>{{quickLinks.quickLinksTitle}}</h4>
+            <ul class="quick-links-list">
+                <li class="quick-link-item">
+                    <a href="{{quickLinks.links.0.url}}" class="quick-link">
+                        <span class="link-icon">{{quickLinks.links.0.icon}}</span>
+                        <span class="link-text">{{quickLinks.links.0.text}}</span>
+                    </a>
+                </li>
+                <li class="quick-link-item">
+                    <a href="{{quickLinks.links.1.url}}" class="quick-link">
+                        <span class="link-icon">{{quickLinks.links.1.icon}}</span>
+                        <span class="link-text">{{quickLinks.links.1.text}}</span>
+                    </a>
+                </li>
+                <li class="quick-link-item">
+                    <a href="{{quickLinks.links.2.url}}" class="quick-link">
+                        <span class="link-icon">{{quickLinks.links.2.icon}}</span>
+                        <span class="link-text">{{quickLinks.links.2.text}}</span>
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </div>
+</div>

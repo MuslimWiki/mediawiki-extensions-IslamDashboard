@@ -1,0 +1,54 @@
+# Dependency directories
+/vendor/
+/node_modules/
+
+# Build output
+/resources/dist/
+
+# Environment files
+.env
+.env.local
+.env.*.local
+
+# Editor directories and files
+.idea/
+.vscode/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Local development
+.sass-cache/
+*.css.map
+*.sass.map
+*.scss.map
+
+# MediaWiki cache
+cache/
+*.cache
+
+# Composer
+composer.lock
+composer.phar
+
+# IDE specific files
+.idea/
+*.sublime-workspace
+*.sublime-project
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
