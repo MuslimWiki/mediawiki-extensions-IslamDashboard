@@ -14,7 +14,7 @@ use MediaWiki\Html\Html;
 use MediaWiki\SpecialPage\SpecialPage;
 use MediaWiki\Context\RequestContext;
 use MediaWiki\Context\IContextSource;
-use User;
+use MediaWiki\User\User;
 
 /**
  * Welcome widget that greets the user and shows quick stats
@@ -144,34 +144,45 @@ class WelcomeWidget extends DashboardWidget {
             return 0;
         }
         
-        $dbr = wfGetDB(DB_REPLICA);
+        $services = MediaWikiServices::getInstance();
+        $dbr = $services->getDBLoadBalancer()->getConnection(DB_REPLICA);
         $timestamp = $dbr->timestamp(strtotime('-7 days'));
         
-        $count = (int)$dbr->selectField(
-            'revision',
-            'COUNT(*)',
-            [
+        $queryBuilder = $dbr->newSelectQueryBuilder()
+            ->select('COUNT(*)')
+            ->from('revision')
+            ->where([
                 'rev_actor' => $user->getActorId(),
-                'rev_timestamp > ' . $dbr->addQuotes($timestamp)
-            ],
-            __METHOD__
+                $dbr->expr('rev_timestamp', '>', $timestamp)
+            ])
+            ->caller(__METHOD__);
+            
+        return (int)$queryBuilder->fetchField();
+    }
+    
+    /**
+     * @inheritDoc
+     */
+    public function getModules(): array {
+        return [ 
+            'ext.islamDashboard.welcomeWidget',
+            'ext.islamDashboard.styles', // Ensure IslamSkin compatibility
+            'skin.islam.styles' // Load IslamSkin styles if available
+        ];
+    }
+    
+    /**
+     * @inheritDoc
+     */
+    public function getContainerClasses(): array {
+        return array_merge(
+            parent::getContainerClasses(), 
+            [
+                'welcome-widget',
+                'islam-widget', // For IslamSkin compatibility
+                'islam-widget-welcome'
+            ]
         );
-        
-        return $count;
-    }
-    
-    /**
-     * @inheritDoc
-     */
-    public function getModules() {
-        return [ 'ext.islamDashboard.welcomeWidget' ];
-    }
-    
-    /**
-     * @inheritDoc
-     */
-    public function getContainerClasses() {
-        return array_merge(parent::getContainerClasses(), ['welcome-widget']);
     }
     
     // Inherited from DashboardWidget:

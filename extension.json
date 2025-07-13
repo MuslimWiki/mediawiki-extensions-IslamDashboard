@@ -1,6 +1,6 @@
 {
     "name": "IslamDashboard",
-    "version": "0.2.0",
+    "version": "0.2.1",
     "author": ["MuslimWiki Foundation"],
     "url": "https://github.com/MuslimWiki/IslamDashboard",
     "descriptionmsg": "islamdashboard-desc",
@@ -38,7 +38,11 @@
         "MediaWiki\\Extension\\IslamDashboard\\IslamDashboardHooks": "Hooks.php",
         "MediaWiki\\Extension\\IslamDashboard\\WidgetManager": "includes/WidgetManager.php",
         "MediaWiki\\Extension\\IslamDashboard\\Navigation\\NavigationManager": "includes/Navigation/NavigationManager.php",
-        "MediaWiki\\Extension\\IslamDashboard\\Navigation\\NavigationRenderer": "includes/Navigation/NavigationRenderer.php"
+        "MediaWiki\\Extension\\IslamDashboard\\Navigation\\NavigationRenderer": "includes/Navigation/NavigationRenderer.php",
+        "MediaWiki\\Extension\\IslamDashboard\\Widgets\\DashboardWidget": "includes/Widgets/DashboardWidget.php",
+        "MediaWiki\\Extension\\IslamDashboard\\Widgets\\WelcomeWidget": "includes/Widgets/WelcomeWidget.php",
+        "MediaWiki\\Extension\\IslamDashboard\\Widgets\\RecentActivityWidget": "includes/Widgets/RecentActivityWidget.php",
+        "MediaWiki\\Extension\\IslamDashboard\\Widgets\\QuickActionsWidget": "includes/Widgets/QuickActionsWidget.php"
     },
     "Hooks": {
         "BeforePageDisplay": "IslamDashboardHooks::onBeforePageDisplay",
@@ -52,46 +56,40 @@
         "IslamDashboard": ["i18n"]
     },
     "ResourceModules": {
+        "ext.islamDashboard.styles": {
+            "styles": [
+                "resources/styles/dashboard.less"
+            ],
+            "targets": ["desktop", "mobile"]
+        },
         "ext.islamDashboard": {
             "styles": [
-                "resources/styles/ext.islamDashboard.less",
-                "resources/styles/ext.islamDashboard.css"
+                "resources/styles/dashboard.less"
             ],
             "scripts": [
                 "resources/modules/ext.islamDashboard.js",
                 "resources/modules/ext.islamDashboard.init.js"
             ],
             "dependencies": [
+                "jquery",
                 "mediawiki.api",
                 "mediawiki.util",
                 "mediawiki.jqueryMsg",
-                "mediawiki.cookie",
-                "oojs-ui-core",
-                "oojs-ui-windows",
-                "oojs-ui.styles.icons-interactions",
-                "oojs-ui.styles.icons-moderation",
-                "oojs-ui.styles.icons-content",
-                "codex",
-                "codex-search"
+                "mediawiki.cookie"
             ],
             "targets": ["desktop", "mobile"]
         },
         "ext.islamDashboard.navigation": {
-            "styles": [
-                "resources/modules/ext.islamDashboard.navigation.less"
-            ],
             "scripts": [
                 "resources/modules/ext.islamDashboard.navigation.js",
                 "resources/modules/ext.islamDashboard.navigation.init.js"
             ],
             "dependencies": [
+                "jquery",
                 "mediawiki.api",
                 "mediawiki.util",
                 "mediawiki.jqueryMsg",
-                "mediawiki.storage",
-                "oojs-ui-core",
-                "oojs-ui-widgets",
-                "jquery.throttle-debounce"
+                "mediawiki.storage"
             ],
             "messages": [
                 "islamdashboard-navigation-label",

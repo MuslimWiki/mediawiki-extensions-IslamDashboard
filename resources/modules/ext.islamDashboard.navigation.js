@@ -10,34 +10,45 @@
 ( function ( $, mw ) {
     'use strict';
 
+    // Create namespace if it doesn't exist
+    window.IslamDashboard = window.IslamDashboard || {};
+
     /**
      * Navigation module
      */
     function Navigation( config ) {
-        this.config = $.extend( {
-            // Default configuration
-            container: '.dashboard-navigation',
-            sectionHeader: '.dashboard-navigation-section-header',
-            sectionContent: '.dashboard-navigation-section-content',
-            toggleButton: '.dashboard-navigation-toggle',
-            userMenuToggle: '.dashboard-user-menu',
-            userMenu: '.dashboard-user-dropdown',
-            mobileBreakpoint: 768,
-            collapsedClass: 'collapsed',
-            activeClass: 'active',
-            storageKey: 'islamdashboard-navigation-state',
-            ajaxLoad: true
-        }, config );
+        try {
+            this.config = $.extend( {
+                // Default configuration
+                container: '.dashboard-navigation',
+                sectionHeader: '.dashboard-navigation-section-header',
+                sectionContent: '.dashboard-navigation-section-content',
+                toggleButton: '.dashboard-navigation-toggle',
+                userMenuToggle: '.dashboard-user-menu',
+                userMenu: '.dashboard-user-dropdown',
+                mobileBreakpoint: 768,
+                collapsedClass: 'collapsed',
+                activeClass: 'active',
+                storageKey: 'islamdashboard-navigation-state',
+                ajaxLoad: true
+            }, config );
 
-        this.$container = $( this.config.container );
-        this.$body = $( document.body );
-        this.isMobile = false;
-        this.isCollapsed = false;
-        this.sectionStates = {};
-        this.initialized = false;
+            this.$container = $( this.config.container );
+            this.$body = $( document.body );
+            this.isMobile = false;
+            this.isCollapsed = false;
+            this.sectionStates = {};
+            this.initialized = false;
 
-        // Initialize
-        this.init();
+            // Initialize
+            this.init();
+            
+            // Mark as initialized
+            window.IslamDashboard.navigationInitialized = true;
+            mw.log('IslamDashboard Navigation: Initialized successfully');
+        } catch (e) {
+            mw.log.error('IslamDashboard Navigation: Error during initialization', e);
+        }
     }
 
     /**
@@ -361,24 +372,52 @@
         } );
     }
 
-    // Export to global scope
-    mw.islamDashboard = mw.islamDashboard || {};
-    mw.islamDashboard.Navigation = Navigation;
-    mw.islamDashboard.Navigation.init = init;
+    // Export to global scope with proper error handling
+    try {
+        window.IslamDashboard = window.IslamDashboard || {};
+        window.IslamDashboard.Navigation = Navigation;
+        window.IslamDashboard.initNavigation = function(config) {
+            return new Navigation(config || {});
+        };
+        
+        // Auto-initialize if we're on the dashboard
+        if (mw.config.get('wgCanonicalSpecialPageName') === 'Dashboard') {
+            $(function() {
+                var nav = new Navigation();
+                window.IslamDashboard.navigationInstance = nav;
+            });
+        }
+        
+        // Make Navigation available for module export
+        return {
+            Navigation: Navigation,
+            init: init
+        };
+    } catch (e) {
+        mw.log.error('IslamDashboard Navigation: Error during initialization', e);
+        return {}; // Return empty object if initialization fails
+    }
+}( jQuery, mediaWiki ));
 
-    // Auto-initialize on document ready
-    $( document ).ready( function() {
-        mw.loader.using( ['jquery.ui'] ).done( function() {
-            init();
-        });
-    } );
-
-    // Make Navigation available for module export
-    return {
-        Navigation: Navigation,
-        init: init
-    };
-}( jQuery, mediaWiki ) );
+// Initialize when the document is ready and dependencies are loaded
+$(function() {
+    mw.loader.using(['jquery', 'mediawiki.api', 'jquery.ui']).then(
+        function() {
+            try {
+                // Auto-initialize if we're on the dashboard
+                if (mw.config.get('wgCanonicalSpecialPageName') === 'Dashboard') {
+                    var nav = new window.IslamDashboard.Navigation();
+                    window.IslamDashboard.navigationInstance = nav;
+                }
+            } catch (e) {
+                mw.log.error('IslamDashboard Navigation: Error during auto-initialization', e);
+            }
+        },
+        function(error) {
+            mw.log.error('IslamDashboard Navigation: Failed to load dependencies', error);
+        }
+    );
+});
 
 // Register for dynamic content
 mw.hook( 'wikipage.content' ).add( function ( $content ) {
