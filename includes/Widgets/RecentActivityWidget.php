@@ -14,9 +14,10 @@ use MediaWiki\Linker\LinkRenderer;
 use MediaWiki\Linker\LinkTarget;
 use MediaWiki\Revision\RevisionRecord;
 use MediaWiki\Title\Title;
-use MediaWiki\Html\Html;
 use MediaWiki\SpecialPage\SpecialPage;
+use MediaWiki\Title\TitleFactory;
 use MediaWiki\Context\IContextSource;
+use MediaWiki\Html\Html;
 use RecentChange;
 use User;
 
@@ -124,17 +125,21 @@ class RecentActivityWidget extends DashboardWidget {
      */
     protected function getRecentActivity(): array {
         $user = $this->getUser();
-        $dbr = wfGetDB( DB_REPLICA );
+        $services = MediaWikiServices::getInstance();
+        $dbr = $services->getDBLoadBalancer()->getMaintenanceConnectionRef( DB_REPLICA );
         
-        // Get recent edits
-        $res = $dbr->select(
-            [ 'recentchanges', 'page' ],
-            [ 
+        // Get recent edits using ActorMigration for MW 1.36+
+        $commentStore = $services->getCommentStore();
+        
+        // Get actor ID for the current user
+        $actorId = $user->getActorId();
+        
+        // Build the query
+        $queryBuilder = $dbr->newSelectQueryBuilder()
+            ->select( [
                 'rc_timestamp',
                 'rc_namespace',
                 'rc_title',
-                'rc_comment_text AS comment_text',
-                'rc_comment_data AS comment_data',
                 'rc_this_oldid',
                 'rc_last_oldid',
                 'rc_type',
@@ -145,21 +150,22 @@ class RecentActivityWidget extends DashboardWidget {
                 'page_title',
                 'page_is_redirect',
                 'page_len',
-                'page_content_model'
-            ],
-            [
-                'rc_user' => $user->getId(),
+                'page_content_model',
+                'rc_comment_text' => 'comment_rc_comment.comment_text',
+                'rc_comment_data' => 'comment_rc_comment.comment_data'
+            ] )
+            ->from( 'recentchanges' )
+            ->join( 'page', null, 'page_id=rc_cur_id' )
+            ->leftJoin( 'comment', 'comment_rc_comment', 'comment_rc_comment.comment_id = rc_comment_id' )
+            ->where( [
+                'rc_actor' => $actorId,
                 'rc_type != ' . $dbr->addQuotes( RC_EXTERNAL ) // Exclude external changes
-            ],
-            __METHOD__,
-            [
-                'ORDER BY' => 'rc_timestamp DESC',
-                'LIMIT' => self::MAX_ITEMS
-            ],
-            [
-                'page' => [ 'LEFT JOIN', 'page_id = rc_cur_id' ]
-            ]
-        );
+            ] )
+            ->orderBy( 'rc_timestamp', 'DESC' )
+            ->limit( self::MAX_ITEMS )
+            ->caller( __METHOD__ );
+        
+        $res = $queryBuilder->fetchResultSet();
         
         $activities = [];
         
@@ -177,26 +183,45 @@ class RecentActivityWidget extends DashboardWidget {
      * @return array Formatted activity item
      */
     protected function formatActivity( \stdClass $row ): array {
-        global $wgLang;
+        $services = MediaWikiServices::getInstance();
+        $titleFactory = $services->getTitleFactory();
+        $lang = $this->getContext()->getLanguage();
         
-        $title = Title::makeTitle( $row->rc_namespace, $row->rc_title );
-        $timestamp = wfTimestamp( TS_MW, $row->rc_timestamp );
-        $formattedTime = $wgLang->timeanddate( $timestamp, true );
-        $activityType = $this->getActivityType( $row );
+        // Safely access row properties with null coalescing
+        $namespace = $row->rc_namespace ?? NS_MAIN;
+        $titleText = $row->rc_title ?? '';
+        $timestamp = $row->rc_timestamp ?? wfTimestampNow();
+        
+        // Create title object safely
+        try {
+            $title = $titleFactory->makeTitleSafe($namespace, $titleText);
+            if (!$title || !$title->exists()) {
+                return [];
+            }
+        } catch (\Exception $e) {
+            wfDebugLog('IslamDashboard', 'Error creating title: ' . $e->getMessage());
+            return [];
+        }
+        
+        $formattedTime = $lang->timeanddate($timestamp, true);
+        $activityType = $this->getActivityType($row);
         
         // Get appropriate icon HTML based on activity type
         $iconMap = [
-            'create' => '<span class="mw-ui-icon mw-ui-icon-article"></span>',
-            'edit' => '<span class="mw-ui-icon mw-ui-icon-edit"></span>',
-            'delete' => '<span class="mw-ui-icon mw-ui-icon-trash"></span>',
-            'move' => '<span class="mw-ui-icon mw-ui-icon-move"></span>',
-            'undo' => '<span class="mw-ui-icon mw-ui-icon-undo"></span>',
-            'rollback' => '<span class="mw-ui-icon mw-ui-icon-reload"></span>',
-            'upload' => '<span class="mw-ui-icon mw-ui-icon-upload"></span>',
-            'comment' => '<span class="mw-ui-icon mw-ui-icon-chat"></span>'
+            'create' => 'article',
+            'edit' => 'edit',
+            'delete' => 'trash',
+            'move' => 'move',
+            'undo' => 'undo',
+            'rollback' => 'reload',
+            'upload' => 'upload',
+            'comment' => 'chat'
         ];
         
-        $icon = $iconMap[$activityType] ?? $iconMap['edit'];
+        $iconClass = $iconMap[$activityType] ?? 'edit';
+        $icon = Html::element('span', [
+            'class' => 'mw-ui-icon mw-ui-icon-' . $iconClass
+        ]);
         
         $activity = [
             'type' => $activityType,
@@ -240,16 +265,19 @@ class RecentActivityWidget extends DashboardWidget {
      * @return string Formatted comment
      */
     protected function formatComment( \stdClass $row ): string {
-        if ( $row->rc_deleted & RevisionRecord::DELETED_COMMENT ) {
+        if ( isset( $row->rc_deleted ) && ( $row->rc_deleted & RevisionRecord::DELETED_COMMENT ) ) {
             return wfMessage( 'rev-deleted-comment' )->text();
         }
         
-        if ( $row->comment_text === null ) {
+        // Safely access comment_text with null coalescing
+        $commentText = $row->comment_text ?? $row->rc_comment_text ?? '';
+        
+        if ( empty( $commentText ) ) {
             return '';
         }
         
         // TODO: Format comment with proper parsing
-        return $row->comment_text;
+        return $commentText;
     }
     
     /**
@@ -409,15 +437,25 @@ class RecentActivityWidget extends DashboardWidget {
     /**
      * @inheritDoc
      */
-    public function getModules() {
-        return [ 'ext.islamDashboard.recentActivityWidget' ];
+    public function getModules(): array {
+        return [ 
+            'ext.islamDashboard.recentActivity',
+            'ext.islamDashboard.styles' // Ensure IslamSkin compatibility
+        ];
     }
     
     /**
      * @inheritDoc
      */
-    public function getContainerClasses() {
-        return array_merge( parent::getContainerClasses(), [ 'recent-activity-widget' ] );
+    public function getContainerClasses(): array {
+        return array_merge( 
+            parent::getContainerClasses(), 
+            [ 
+                'recent-activity-widget',
+                'islam-widget-recent-activity',
+                'islam-widget' // For IslamSkin compatibility
+            ] 
+        );
     }
     
     // Inherited from DashboardWidget:

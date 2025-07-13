@@ -8,12 +8,26 @@
 @import 'mediawiki.skin.variables.less';
 @import 'mediawiki.mixins.less';
 
-// Navigation container
-.dashboard-navigation-container {
-    position: relative;
-    z-index: @z-index-navigation;
-    height: 100%;
-    transition: transform 0.3s ease;
+// Navigation container - now part of the grid layout
+.dashboard-sidebar {
+    background: #fff;
+    border-right: 1px solid #e9ecef;
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    position: sticky;
+    top: 0;
+    overflow-y: auto;
+    
+    // Branding at the top
+    .dashboard-branding {
+        padding: 1.25rem;
+        font-size: 1.25rem;
+        font-weight: 600;
+        color: #2c3e50;
+        border-bottom: 1px solid #e9ecef;
+        text-align: center;
+    }
     
     // Mobile menu toggle button (hidden on desktop)
     .dashboard-mobile-menu-toggle {
@@ -43,14 +57,45 @@
 
 // Main navigation styles
 .dashboard-navigation {
-    position: fixed;
-    top: 0;
-    left: 0;
-    bottom: 0;
-    width: @width-navigation;
-    background-color: @background-color-base;
-    border-right: @border-base;
+    padding: 1rem 0;
+    margin: 0;
+    width: 100%;
+    flex: 1;
+    overflow-y: auto;
+    list-style: none;
     display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    
+    // Navigation items
+    .nav-item {
+        display: flex;
+        align-items: center;
+        padding: 0.625rem 1.25rem;
+        color: #4a5568;
+        text-decoration: none;
+        transition: all 0.2s ease;
+        border-left: 3px solid transparent;
+        
+        &:hover {
+            background-color: #f7fafc;
+            color: #2b6cb0;
+        }
+        
+        &.active {
+            background-color: #ebf8ff;
+            color: #2b6cb0;
+            border-left-color: #3182ce;
+            font-weight: 500;
+        }
+        
+        .nav-icon {
+            margin-right: 0.75rem;
+            width: 20px;
+            text-align: center;
+            color: inherit;
+        }
+    }
     flex-direction: column;
     z-index: @z-index-navigation;
     transition: transform 0.3s ease, width 0.3s ease;
@@ -99,13 +144,16 @@
     }
     
     // Mobile styles
-    @media (max-width: @width-breakpoint-tablet) {
-        transform: translateX(-100%);
-        
-        &.is-mobile-visible {
-            transform: translateX(0);
-            box-shadow: 0 0 1rem rgba(0, 0, 0, 0.2);
+    @media (max-width: @screen-md) {
+        .dashboard-navigation-container {
+            transform: translateX(-100%);
+            
+            &.is-visible {
+                transform: translateX(0);
+            }
         }
+        
+        box-shadow: 0 0 1rem rgba(0, 0, 0, 0.2);
         
         .dashboard-mobile-menu-toggle {
             display: block;
@@ -206,16 +254,19 @@
 
 // Navigation item
 .dashboard-navigation-item {
-    margin: 0.125rem 0;
+    margin: 0;
+    border-bottom: 1px solid #f0f0f0;
+    
+    &:last-child {
+        border-bottom: none;
+    }
     
     &.active {
         .dashboard-navigation-link {
-            background-color: @background-color-primary;
-            color: @color-primary;
-            
-            .dashboard-navigation-icon {
-                color: @color-primary;
-            }
+            background-color: @background-color-primary--hover;
+            color: @color-primary--hover;
+            font-weight: bold;
+            border-left: 3px solid @color-primary;
         }
     }
 }
@@ -224,16 +275,16 @@
 .dashboard-navigation-link {
     display: flex;
     align-items: center;
-    padding: 0.75rem 1rem;
-    color: @color-base;
+    padding: 0.75rem 1.5rem;
+    color: @color-text;
     text-decoration: none;
-    transition: background-color 0.2s, color 0.2s;
-    border-radius: @border-radius-small;
-    margin: 0 0.5rem;
+    transition: all 0.2s ease;
+    font-size: 0.95rem;
     
     &:hover {
         background-color: @background-color-primary--hover;
         color: @color-primary--hover;
+        text-decoration: none;
         
         .dashboard-navigation-icon {
             color: @color-primary--hover;
@@ -246,10 +297,9 @@
     
     .dashboard-navigation-icon {
         margin-right: 0.75rem;
-        color: @color-subtle;
-        font-size: 1.25rem;
-        width: 1.5rem;
+        width: 1.25rem;
         text-align: center;
+        color: @color-text--muted;
         transition: color 0.2s;
     }
     
@@ -365,17 +415,66 @@
     }
 }
 
-// Responsive styles
-@media (max-width: @width-breakpoint-tablet) {
-    .dashboard-navigation-toggle {
-        display: none !important;
+// User actions menu - hide by default on desktop
+.dashboard-user-actions {
+    display: none;
+}
+
+// Mobile menu toggle - hidden by default
+.dashboard-mobile-menu-toggle {
+    display: none;
+    position: fixed;
+    top: 1rem;
+    left: 1rem;
+    z-index: @z-index-overlay + 1;
+    background: @background-color-base;
+    border: @border-base;
+    border-radius: @border-radius-small;
+    padding: 0.5rem 0.75rem;
+    cursor: pointer;
+    font-size: 1.25rem;
+    line-height: 1;
+    
+    &:hover {
+        background-color: @background-color-primary--hover;
+        color: @color-primary--hover;
     }
     
+    &:active {
+        background-color: @background-color-primary--active;
+    }
+}
+
+// Responsive styles for mobile
+@media (max-width: @width-breakpoint-tablet) {
     .dashboard-wrapper {
         padding-top: 3.5rem; // Make room for mobile menu toggle
     }
     
+    // Show mobile menu toggle on mobile
     .dashboard-mobile-menu-toggle {
         display: block !important;
+    }
+    
+    // Show user actions menu on mobile
+    .dashboard-user-actions {
+        display: block;
+    }
+    
+    // Hide regular user menu on mobile
+    .dashboard-user-menu {
+        display: none;
+    }
+    
+    // Show user menu when active on mobile
+    .dashboard-user-menu.active {
+        display: block;
+        position: absolute;
+        bottom: 100%;
+        left: 0;
+        right: 0;
+        background: @background-color-base;
+        border-bottom: @border-base;
+        z-index: @z-index-overlay;
     }
 }

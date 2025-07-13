@@ -1,6 +1,6 @@
 <?php
 /**
- * Dashboard template for the IslamDashboard extension
+ * Minimal Dashboard template for the IslamDashboard extension
  *
  * @file
  * @ingroup Extensions
@@ -9,214 +9,367 @@
 
 declare( strict_types = 1 );
 
-use MediaWiki\MediaWikiServices;
+use MediaWiki\Extension\IslamDashboard\WidgetManager;
 use MediaWiki\Extension\IslamDashboard\Navigation\NavigationManager;
 use MediaWiki\Extension\IslamDashboard\Navigation\NavigationRenderer;
+use MediaWiki\Html\Html;
+use MediaWiki\Output\OutputPage;
+use MediaWiki\MediaWikiServices;
 
-/**
- * @var \MediaWiki\Extension\IslamDashboard\SpecialDashboard $specialDashboard
- * @var array $widgets Array of widget instances
- * @var array $layout User's widget layout
- * @var bool $canEdit Whether the user can edit the dashboard
- */
+// Get template data from global scope
+$data = $GLOBALS['islamDashboardData'] ?? [];
 
-$out = $specialDashboard->getOutput();
-$user = $specialDashboard->getUser();
-$widgetManager = MediaWiki\Extension\IslamDashboard\WidgetManager::getInstance();
+// Extract common variables with defaults
+$messages = $data['messages'] ?? [];
+$pageTitle = $messages['dashboardTitle'] ?? 'Dashboard';
+$user = $data['user'] ?? $this->getUser();
+$widgets = $data['widgets'] ?? [];
+$layout = $data['layout'] ?? [];
+$canEdit = $data['canEdit'] ?? false;
+$editToken = $data['editToken'] ?? '';
+$apiUrl = $data['apiUrl'] ?? '';
 
-// Add page title
-$out->setPageTitle( $specialDashboard->msg( 'islamdashboard-dashboard' )->text() );
+// Get services
+$out = $this->getOutput();
+$skin = $out->getSkin();
 
-// Add body classes
-$out->addBodyClasses( [ 'islam-dashboard-page' ] );
-
-// Add required modules and styles
-$out->addModules( [ 'ext.islamDashboard', 'ext.islamDashboard.navigation' ] );
-$out->addModuleStyles( [ 'oojs-ui.styles.icons-interactions', 'oojs-ui.styles.icons-content', 'ext.islamDashboard.styles', 'ext.islamDashboard.navigation.styles' ] );
+// Set page title
+$out->setPageTitle( $pageTitle );
 
 // Add configuration variables for JavaScript
 $out->addJsConfigVars( [
     'wgIslamDashboardConfig' => [
-        'apiUrl' => wfScript( 'api' ),
-        'editToken' => $user->getEditToken(),
+        'apiUrl' => $apiUrl,
+        'editToken' => $editToken,
         'canEdit' => $canEdit,
-        'messages' => [
-            'confirmRemoveWidget' => wfMessage( 'islamdashboard-confirm-remove-widget' )->text(),
-            'widgetError' => wfMessage( 'islamdashboard-widget-error' )->text(),
-            'loading' => wfMessage( 'islamdashboard-loading' )->text()
-        ]
+        'messages' => $messages
     ]
 ] );
 
-// Initialize dashboard JavaScript
-$out->addInlineScript( 'jQuery( document ).ready( function() { mw.loader.using( [ "ext.islamDashboard", "ext.islamDashboard.navigation" ] ).done( function() { mw.islamDashboard.init(); } ); } );' );
+// Let the skin handle the wrapper
+if ( method_exists( $skin, 'setupSkinUserCss' ) ) {
+    $skin->setupSkinUserCss( $out );
+}
 
-// Get navigation components
-$navManager = NavigationManager::getInstance();
-$navRenderer = new NavigationRenderer( $navManager );
-$currentPath = $specialDashboard->getRequest()->getRequestURL();
+// Add dashboard modules
+$out->addModules( 'ext.islamDashboard' );
+$out->addModuleStyles( [
+    'ext.islamDashboard.styles',
+    'ext.islamDashboard.navigation.styles',
+    'ext.islamDashboard.widgets.welcome',
+    'ext.islamDashboard.widgets.recentActivity',
+    'ext.islamDashboard.widgets.quickActions'
+] );
 
 ?>
-<div class="islam-dashboard">
-    <?php 
-    // Main content wrapper
-    ?>
-    <div class="dashboard-wrapper">
+
+<!-- Main dashboard container -->
+<div class="mw-dashboard-grid">
+    <div class="mw-dashboard-sidebar">
         <?php
-        // Get the navigation HTML
-        $navManager = NavigationManager::getInstance();
-        $navRenderer = new NavigationRenderer( $navManager );
-        $currentPath = $specialDashboard->getRequest()->getRequestURL();
-        
-        // Navigation container with proper structure for JavaScript
-        echo Html::openElement( 'div', [ 'class' => 'dashboard-navigation-container' ] );
-        
         // Mobile menu toggle
         echo Html::element( 'button', [
-            'class' => 'dashboard-mobile-menu-toggle',
+            'class' => 'mw-dashboard-menu-toggle',
             'aria-label' => wfMessage( 'islamdashboard-mobile-menu-toggle' )->text(),
             'title' => wfMessage( 'islamdashboard-mobile-menu-toggle' )->text(),
             'id' => 'dashboard-mobile-menu-toggle'
-        ], '☰' );
+        ], '' );
         
-        // Main navigation container with proper class for JavaScript
-        echo Html::openElement( 'nav', [ 'class' => 'dashboard-navigation', 'id' => 'dashboard-navigation' ] );
-        
-        // Navigation content
-        echo $navRenderer->getNavigationHTML( [
-            'currentPath' => $currentPath,
-            'user' => $user
+        // Navigation
+        echo Html::openElement( 'nav', [
+            'class' => 'mw-dashboard-navigation',
+            'id' => 'dashboard-navigation',
+            'role' => 'navigation',
+            'aria-labelledby' => 'dashboard-navigation-label'
         ] );
         
-        echo Html::closeElement( 'nav' );
-        echo Html::closeElement( 'div' );
+        echo Html::element( 'h2', [ 
+            'class' => 'mw-portlet-header',
+            'id' => 'dashboard-navigation-label' 
+        ], wfMessage( 'islamdashboard-navigation' )->text() );
         
-        // Initialize navigation JavaScript
-        $out->addInlineScript(
-            'jQuery( document ).ready( function() { mw.loader.using( "ext.islamDashboard.navigation" ).done( function() {' .
-            '   mw.islamDashboard.Navigation.init();' .
-            '} ) } );'
-        );
-        ?>
+        echo Html::openElement( 'ul', [ 'class' => 'mw-dashboard-nav-list' ] );
         
-        <div class="dashboard-container">
-            <!-- Main content area -->
-            <div class="dashboard-main">
-                <?php 
-                // Render main content widgets
-                if ( isset( $layout['main'] ) ) {
-                    foreach ( $layout['main'] as $widgetId ) {
-                        if ( isset( $widgets[$widgetId] ) ) {
-                            echo $widgets[$widgetId]->render();
-                        }
-                    }
-                }
-                ?>
-            </div>
+        // Render navigation items
+        try {
+            $navManager = NavigationManager::getInstance();
+            $navSections = $navManager->getNavigationForUser( $user );
             
-            <!-- Sidebar -->
-            <div class="dashboard-sidebar">
-                <?php 
-                // Render sidebar widgets
-                if ( isset( $layout['sidebar'] ) ) {
-                    foreach ( $layout['sidebar'] as $widgetId ) {
-                        if ( isset( $widgets[$widgetId] ) ) {
-                            echo $widgets[$widgetId]->render();
-                        }
-                    }
+            foreach ( $navSections as $sectionId => $section ) {
+                // Skip if section has no items
+                if ( empty( $section['items'] ) ) {
+                    continue;
                 }
-                ?>
-            </div>
-        </div><!-- /.dashboard-container -->
-    </div><!-- /.dashboard-wrapper -->
-    
-    <?php if ( $canEdit ) : ?>
-    <!-- Edit mode controls -->
-    <div class="dashboard-edit-controls">
-        <button id="toggleEditMode" class="cdx-button cdx-button--action-progressive">
-            <?php echo $specialDashboard->msg( 'islamdashboard-edit-layout' )->escaped(); ?>
-        </button>
-        <button id="resetLayout" class="cdx-button cdx-button--action-destructive" style="display: none;">
-            <?php echo $specialDashboard->msg( 'islamdashboard-reset-layout' )->escaped(); ?>
-        </button>
-        <button id="saveLayout" class="cdx-button cdx-button--weight-primary" style="display: none;">
-            <?php echo $specialDashboard->msg( 'islamdashboard-save-layout' )->escaped(); ?>
-        </button>
-    </div>
-    
-    <!-- Widget selector (shown in edit mode) -->
-    <div id="widgetSelector" class="widget-selector" style="display: none;">
-        <h3 class="widget-selector-title">
-            <?php echo $specialDashboard->msg( 'islamdashboard-add-widgets' )->escaped(); ?>
-        </h3>
-        <div class="widget-selector-grid">
-            <?php 
-            // Show all available widgets that aren't already added
-            $availableWidgets = array_diff_key( 
-                $widgetManager->getWidgets( $user ),
-                $widgets 
+                
+                // Add section header if it has a label
+                if ( !empty( $section['label'] ) ) {
+                    echo Html::element( 'div', [ 
+                        'class' => 'mw-dashboard-nav-section-header' 
+                    ], wfMessage( $section['label'] )->text() );
+                }
+                
+                // Start section list
+                echo Html::openElement( 'ul', [ 'class' => 'mw-dashboard-nav-section' ] );
+                
+                // Render section items
+                foreach ( $section['items'] as $itemId => $item ) {
+                    $linkAttribs = [
+                        'href' => $item['url'] ?? '#',
+                        'title' => wfMessage( $item['label'] )->text(),
+                        'class' => 'mw-dashboard-nav-link'
+                    ];
+                    
+                    if ( isset( $item['class'] ) ) {
+                        $linkAttribs['class'] .= ' ' . $item['class'];
+                    }
+                    
+                    if ( isset( $item['id'] ) ) {
+                        $linkAttribs['id'] = $item['id'];
+                    }
+                    
+                    echo Html::openElement( 'li', [ 'class' => 'mw-dashboard-nav-item' ] );
+                    echo Html::rawElement( 'a', $linkAttribs, 
+                        Html::element( 'span', [ 'class' => 'mw-ui-icon ' . ( $item['icon'] ?? '' ) ] ) .
+                        Html::element( 'span', [ 'class' => 'mw-dashboard-nav-label' ], 
+                            wfMessage( $item['label'] )->text() 
+                        )
+                    );
+                    echo '</li>';
+                }
+                
+                echo '</ul>'; // Close section list
+            }
+        } catch ( Exception $e ) {
+            // Log error but don't break the page
+            wfDebugLog( 'IslamDashboard', 'Navigation error: ' . $e->getMessage() );
+            echo Html::rawElement( 'li', [ 'class' => 'error' ], 
+                wfMessage( 'islamdashboard-navigation-error' )->parse()
             );
-            
-            foreach ( $availableWidgets as $widget ) : 
-                if ( $widget->canBeAdded() ) :
-            ?>
-                <div class="widget-selector-item" data-widget-id="<?php echo htmlspecialchars( $widget->getId() ); ?>">
-                    <div class="widget-selector-icon">
-                        <span class="oo-ui-iconElement-icon oo-ui-icon-<?php echo htmlspecialchars( $widget->getIcon() ); ?>"></span>
-                    </div>
-                    <div class="widget-selector-info">
-                        <h4 class="widget-selector-title">
-                            <?php echo htmlspecialchars( $widget->getTitle() ); ?>
-                        </h4>
-                        <p class="widget-selector-description">
-                            <?php echo htmlspecialchars( $widget->getDescription() ); ?>
-                        </p>
-                    </div>
-                </div>
-            <?php 
-                endif;
-            endforeach; 
-            ?>
-        </div>
-    </div>
-    <?php endif; ?>
+        }
+        
+        echo '</ul>';
+        echo '</nav>';
+        
+        // User profile section at the bottom
+        if ( !empty( $data['userProfileHTML'] ) ) {
+            echo Html::rawElement( 'div', [ 
+                'class' => 'mw-dashboard-user-profile mw-panel',
+                'role' => 'complementary',
+                'aria-labelledby' => 'user-profile-label'
+            ], 
+            Html::element( 'h3', [ 'id' => 'user-profile-label' ], 
+                wfMessage( 'islamdashboard-user-profile' )->text() 
+            ) . $data['userProfileHTML'] );
+        }
+        ?>
+    </div> <!-- Close mw-dashboard-sidebar -->
     
-    <!-- Empty state (shown when no widgets are added) -->
-    <div id="emptyDashboard" class="dashboard-empty-state" <?php echo !empty( $widgets ) ? 'style="display: none;"' : ''; ?>>
-        <div class="dashboard-empty-state-icon">
+    <!-- Main Content Area -->
+    <main class="mw-dashboard-main" role="main">
+        <div class="mw-dashboard-widgets-container">
+        <?php
+        // Render main content widgets
+        if ( isset( $layout['main'] ) && is_array( $layout['main'] ) ) {
+            $allWidgets = $widgets ?? [];
+            $widgetCount = 0;
+            
+            echo Html::openElement( 'div', [ 'class' => 'mw-dashboard-widgets' ] );
+            
+            foreach ( $layout['main'] as $widgetId ) {
+                if ( isset( $allWidgets[$widgetId] ) && is_object( $allWidgets[$widgetId] ) ) {
+                    $widget = $allWidgets[$widgetId];
+                    $widgetCount++;
+                
+                    try {
+                        // Get widget HTML content
+                        $widgetContent = $widget->getContent();
+                        
+                        // Only render if the widget has content
+                        if ( $widgetContent !== null ) {
+                            // Get container attributes including data-widget-type
+                            $containerAttribs = $widget->getContainerAttributes();
+                            
+                            // Ensure we have the required classes
+                            $containerAttribs['class'] = isset($containerAttribs['class']) 
+                                ? $containerAttribs['class'] . ' mw-dashboard-widget mw-panel'
+                                : 'mw-dashboard-widget mw-panel';
+                            
+                            // Add any additional container classes
+                            $containerClasses = $widget->getContainerClasses();
+                            if (!empty($containerClasses)) {
+                                if (is_array($containerClasses)) {
+                                    $containerAttribs['class'] .= ' ' . implode(' ', $containerClasses);
+                                } else {
+                                    $containerAttribs['class'] .= ' ' . $containerClasses;
+                                }
+                            }
+                            
+                            // Render the widget container with all attributes and content
+                            echo Html::rawElement('div', $containerAttribs, $widgetContent);
+                        }
+                    } catch ( Exception $e ) {
+                        wfDebugLog( 'IslamDashboard', 'Error rendering widget ' . $widgetId . ': ' . $e->getMessage() );
+                        echo Html::rawElement( 'div', [ 'class' => 'errorbox' ],
+                            wfMessage( 'islamdashboard-widget-error', $widget->getType() )->parse()
+                        );
+                    }
+                }
+            }
+            
+            echo '</div>'; // Close mw-dashboard-widgets
+            
+            // If no widgets found, show a welcome message
+            if ( $widgetCount === 0 ) {
+                echo Html::rawElement( 'div', [ 'class' => 'mw-dashboard-welcome mw-panel' ],
+                    Html::element( 'h2', [], wfMessage( 'islamdashboard-welcome-title' )->text() ) .
+                    Html::element( 'p', [], wfMessage( 'islamdashboard-no-widgets-configured' )->text() )
+                );
+            }
+        } else {
+            // No layout defined, show error
+            echo Html::rawElement( 'div', [ 'class' => 'errorbox' ],
+                wfMessage( 'islamdashboard-no-layout' )->parse()
+            );
+        }
+        ?>
+        </div>
+    </main>
+    
+    <!-- Right Sidebar -->
+    <aside class="mw-dashboard-right-sidebar">
+        <?php 
+        // Render sidebar widgets
+        if ( !empty( $layout['sidebar'] ) && is_array( $layout['sidebar'] ) ) {
+            $allWidgets = $widgets ?? [];
+            
+            foreach ( $layout['sidebar'] as $widgetId ) {
+                if ( isset( $allWidgets[$widgetId] ) && is_object( $allWidgets[$widgetId] ) ) {
+                    $widget = $allWidgets[$widgetId];
+                    
+                    try {
+                        // Get widget HTML content
+                        $widgetContent = $widget->getContent();
+                        
+                        // Only render if the widget has content
+                        if ( $widgetContent !== null ) {
+                            // Get container attributes including data-widget-type
+                            $containerAttribs = $widget->getContainerAttributes();
+                            
+                            // Ensure we have the required classes
+                            $containerAttribs['class'] = isset($containerAttribs['class']) 
+                                ? $containerAttribs['class'] . ' mw-dashboard-widget mw-panel'
+                                : 'mw-dashboard-widget mw-panel';
+                            
+                            // Add any additional container classes
+                            $containerClasses = $widget->getContainerClasses();
+                            if (!empty($containerClasses)) {
+                                if (is_array($containerClasses)) {
+                                    $containerAttribs['class'] .= ' ' . implode(' ', $containerClasses);
+                                } else {
+                                    $containerAttribs['class'] .= ' ' . $containerClasses;
+                                }
+                            }
+                            
+                            // Render the widget container with all attributes and content
+                            echo Html::rawElement('div', $containerAttribs, $widgetContent);
+                        }
+                    } catch ( Exception $e ) {
+                        wfDebugLog( 'IslamDashboard', 'Error rendering sidebar widget ' . $widgetId . ': ' . $e->getMessage() );
+                        // Don't show error in sidebar to avoid breaking layout
+                    }
+                }
+            }
+        }
+        ?>
+    </aside>
+</div> <!-- Close mw-dashboard-grid -->
+
+<!-- Initialize dashboard JavaScript -->
+<?php
+// Add main dashboard initialization
+$js = <<<'JS'
+    jQuery( document ).ready( function() {
+        mw.loader.using( ["ext.islamDashboard", "ext.islamDashboard.navigation"] ).done( function() {
+            // Initialize dashboard components
+            mw.hook( "ext.islamDashboard.loaded" ).fire();
+            mw.hook( "ext.islamDashboard.navigation" ).fire();
+            
+            // Handle mobile menu toggle
+            jQuery( "#dashboard-mobile-menu-toggle" ).on( "click", function() {
+                jQuery( ".mw-dashboard-sidebar" ).toggleClass( "mobile-menu-visible" );
+            });
+        });
+    });
+JS;
+$out->addInlineScript( $js );
+
+// Add any additional JavaScript from widgets
+if ( !empty( $data['scripts'] ) && is_array( $data['scripts'] ) ) {
+    foreach ( $data['scripts'] as $script ) {
+        $out->addInlineScript( $script );
+    }
+}
+?>
+
+<!-- Hidden template for dynamic widget creation -->
+<template id="widgetTemplate">
+    <div class="mw-dashboard-widget mw-panel" data-widget-id="" data-widget-type="">
+        <div class="mw-dashboard-widget-header">
+            <h3 class="mw-dashboard-widget-title"></h3>
+            <div class="mw-dashboard-widget-actions">
+                <button type="button" class="mw-dashboard-widget-edit" title="Edit widget">✏️</button>
+                <button type="button" class="mw-dashboard-widget-remove" title="Remove widget">🗑️</button>
+            </div>
+        </div>
+        <div class="mw-dashboard-widget-content"></div>
+    </div>
+</template>
+
+<?php if ( $canEdit ) : ?>
+<!-- Dashboard controls and widgets container -->
+<div class="mw-dashboard-controls-container">
+    <div class="mw-dashboard-controls">
+        <button id="dashboard-edit-layout" class="mw-ui-button mw-ui-progressive">
+            <?php echo wfMessage( 'islamdashboard-edit-layout' )->text(); ?>
+        </button>
+        <button id="dashboard-add-widget" class="mw-ui-button mw-ui-progressive">
+            <?php echo wfMessage( 'islamdashboard-add-widget' )->text(); ?>
+        </button>
+    </div>
+    
+    <div id="dashboard-widgets-container" class="mw-dashboard-widgets-container">
+        <!-- Widgets will be loaded here -->
+    </div>
+    
+    <!-- Empty state for dashboard -->
+    <div id="emptyDashboard" class="mw-dashboard-empty" <?php echo !empty( $widgets ) ? 'style="display: none;"' : ''; ?>>
+        <div class="mw-dashboard-empty-icon">
             <span class="oo-ui-iconElement-icon oo-ui-icon-dashboard"></span>
         </div>
-        <h3 class="dashboard-empty-state-title">
-            <?php echo $specialDashboard->msg( 'islamdashboard-empty-title' )->escaped(); ?>
+        <h3 class="mw-dashboard-empty-title">
+            <?php echo wfMessage( 'islamdashboard-empty-dashboard-title' )->text(); ?>
         </h3>
-        <p class="dashboard-empty-state-description">
-            <?php echo $specialDashboard->msg( 'islamdashboard-empty-description' )->escaped(); ?>
+        <p class="mw-dashboard-empty-description">
+            <?php echo wfMessage( 'islamdashboard-empty-dashboard-description' )->text(); ?>
         </p>
-        <?php if ( $canEdit ) : ?>
-        <button id="addFirstWidget" class="cdx-button cdx-button--action-progressive cdx-button--weight-primary">
-            <?php echo $specialDashboard->msg( 'islamdashboard-add-first-widget' )->escaped(); ?>
+        <button id="addFirstWidget" class="mw-ui-button mw-ui-progressive">
+            <?php echo wfMessage( 'islamdashboard-add-first-widget' )->text(); ?>
         </button>
-        <?php endif; ?>
     </div>
 </div>
 
-<!-- Widget template (used by JavaScript) -->
-<template id="widgetTemplate">
-    <div class="dashboard-widget" data-widget-id="" data-widget-type="">
-        <div class="widget-header">
-            <h3 class="widget-title"></h3>
-            <div class="widget-actions">
-                <button class="widget-edit" title="<?php echo $specialDashboard->msg( 'islamdashboard-edit-widget' )->escaped(); ?>">
-                    <span class="oo-ui-iconElement-icon oo-ui-icon-edit"></span>
-                </button>
-                <button class="widget-remove" title="<?php echo $specialDashboard->msg( 'islamdashboard-remove-widget' )->escaped(); ?>">
-                    <span class="oo-ui-iconElement-icon oo-ui-icon-close"></span>
-                </button>
+<!-- Widget selector dialog -->
+<div id="widgetSelectorDialog" class="mw-dashboard-modal" style="display: none;">
+    <div class="mw-dashboard-modal-dialog">
+        <div class="mw-dashboard-modal-header">
+            <h3><?php echo wfMessage( 'islamdashboard-add-widget' )->text(); ?></h3>
+            <button type="button" id="widgetSelectorClose" class="mw-dashboard-modal-close">×</button>
+        </div>
+        <div class="mw-dashboard-modal-body">
+            <div class="mw-dashboard-widget-grid">
+                <!-- Widgets will be loaded here -->
             </div>
         </div>
-        <div class="widget-content"></div>
-        <div class="widget-loading">
-            <div class="widget-loading-spinner"></div>
-        </div>
     </div>
-</template>
+</div>
+<?php endif; ?>

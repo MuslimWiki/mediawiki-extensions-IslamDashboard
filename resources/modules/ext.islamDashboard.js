@@ -4,14 +4,25 @@
 ( function ( $, mw ) {
     'use strict';
 
+    // Create namespace if it doesn't exist
+    window.IslamDashboard = window.IslamDashboard || {};
+
     /**
      * Main dashboard module
      */
     function initDashboard() {
-        // Initialize any interactive components here
-        setupEventListeners();
-        loadUserData();
-        setupWidgets();
+        try {
+            // Initialize any interactive components here
+            setupEventListeners();
+            loadUserData();
+            setupWidgets();
+            
+            // Mark as initialized
+            window.IslamDashboard.initialized = true;
+            mw.log('IslamDashboard: Initialized successfully');
+        } catch (e) {
+            mw.log.error('IslamDashboard: Error during initialization', e);
+        }
     }
 
     /**
@@ -145,19 +156,11 @@
         
         activities.forEach( function ( activity ) {
             const title = new mw.Title( activity.title );
-            const time = new mw.widgets.DateInputWidget( {
-                value: activity.timestamp,
-                displayFormat: { 
-                    month: 'short', 
-                    day: 'numeric', 
-                    hour: '2-digit', 
-                    minute: '2-digit' 
-                }
-            } );
+            const time = formatTimestamp(activity.timestamp);
             
             html +=
                 '<li class="activity-item">' +
-                '  <div class="activity-time">' + time.getValue() + '</div>' +
+                '  <div class="activity-time">' + time + '</div>' +
                 '  <div class="activity-content">' +
                 '    <span class="activity-icon">' + getActivityIcon( activity ) + '</span>' +
                 '    <div class="activity-details">' +
@@ -182,16 +185,20 @@
      * @return {string} HTML for the icon
      */
     function getActivityIcon( activity ) {
-        // Default to edit icon
-        let icon = 'edit';
+        // Use OOUI icon classes directly
+        let iconClass = 'oo-ui-icon-edit';
+        let label = mw.msg('edit');
         
         if ( activity.minor ) {
-            icon = 'minor-edit';
+            iconClass = 'oo-ui-icon-edit-undo';
+            label = mw.msg('minoredit');
         } else if ( activity.new ) {
-            icon = 'new-page';
+            iconClass = 'oo-ui-icon-new-page';
+            label = mw.msg('new-page');
         }
         
-        return new OO.ui.IconWidget( { icon: icon } ).$element;
+        // Create icon element with direct HTML for better compatibility
+        return `<span class="oo-ui-icon-element ${iconClass}" title="${label}"></span>`;
     }
 
     /**
@@ -491,12 +498,47 @@
         }
     }
 
-    // Initialize when the document is ready
-    $( document ).ready( function () {
-        mw.loader.using( ['jquery.ui', 'mediawiki.api', 'mediawiki.jqueryMsg'] ).done( function() {
-            init();
+    /**
+     * Format a timestamp into a human-readable date string
+     * 
+     * @param {string} timestamp MediaWiki timestamp (e.g., '20230101000000')
+     * @return {string} Formatted date string
+     */
+    function formatTimestamp(timestamp) {
+        if (!timestamp) return '';
+        
+        // Extract date components from MediaWiki timestamp (YYYYMMDDHHmmss)
+        const year = timestamp.substr(0, 4);
+        const month = parseInt(timestamp.substr(4, 2)) - 1; // JS months are 0-indexed
+        const day = timestamp.substr(6, 2);
+        const hour = timestamp.substr(8, 2);
+        const minute = timestamp.substr(10, 2);
+        
+        const date = new Date(year, month, day, hour, minute);
+        
+        // Format as "MMM D, YYYY [at] h:mm a" (e.g., "Jan 1, 2023 at 12:00 PM")
+        return date.toLocaleString('en-US', {
+            month: 'short',
+            day: 'numeric',
+            year: 'numeric',
+            hour: 'numeric',
+            minute: '2-digit',
+            hour12: true
         });
-    } );
+    }
+
+    // Initialize when the document is ready and dependencies are loaded
+    mw.loader.using( ['jquery', 'mediawiki.api', 'mediawiki.jqueryMsg'] ).then( function() {
+        // Expose init function to global scope
+        window.IslamDashboard.initDashboard = initDashboard;
+        
+        // Auto-initialize if we're on the dashboard
+        if (mw.config.get('wgCanonicalSpecialPageName') === 'Dashboard') {
+            initDashboard();
+        }
+    }, function(error) {
+        mw.log.error('IslamDashboard: Failed to load dependencies', error);
+    });
 
     // Make init function available globally
     mw.islamDashboard = {

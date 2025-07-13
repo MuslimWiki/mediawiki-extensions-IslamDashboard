@@ -259,7 +259,7 @@ abstract class DashboardWidget {
     }
     
     /**
-     * Render a template with the given data using MediaWiki's template engine
+     * Render a template with the given data using basic template parsing
      *
      * @param string $templateName Name of the template file (without .mustache)
      * @param array $data Data to pass to the template
@@ -278,30 +278,57 @@ abstract class DashboardWidget {
         $templatePath = __DIR__ . '/../../' . $templatePath;
         
         try {
-            // Use MediaWiki's template engine to render the template
+            // Read the template file
             $template = file_get_contents( $templatePath );
             if ( $template === false ) {
                 throw new \RuntimeException( "Template not found: $templatePath" );
             }
             
-            // Simple template variable replacement for now
-            // This can be enhanced with a proper template engine if needed
-            foreach ( $data as $key => $value ) {
-                if ( is_array( $value ) || is_object( $value ) ) {
-                    // Skip complex data structures for now
-                    continue;
-                }
-                $template = str_replace( '{{' . $key . '}}', htmlspecialchars( (string)$value ), $template );
+            // Flatten the data array to handle nested arrays
+            $flattenedData = [];
+            foreach ($this->flattenArray($data) as $key => $value) {
+                $flattenedData['{{' . $key . '}}'] = is_string($value) ? htmlspecialchars($value, ENT_QUOTES) : $value;
             }
             
-            return $template;
+            // Replace placeholders with values
+            $output = strtr($template, $flattenedData);
+            
+            // Clean up any remaining placeholders
+            $output = preg_replace('/\{\{[^}]+\}\}/', '', $output);
+            
+            return $output;
             
         } catch ( \Exception $e ) {
             wfDebugLog( 'IslamDashboard', 'Error rendering template: ' . $e->getMessage() );
-            return '';
+            return '<div class="error">Error loading template: ' . htmlspecialchars($e->getMessage()) . '</div>';
         }
     }
 
+    /**
+     * Flatten a multi-dimensional associative array into a single dimension with dot notation
+     * 
+     * @param array $array The array to flatten
+     * @param string $prefix The prefix to use for nested keys
+     * @return array Flattened array
+     */
+    protected function flattenArray(array $array, $prefix = '') {
+        $result = [];
+        
+        foreach ($array as $key => $value) {
+            $newKey = $prefix . (empty($prefix) ? '' : '.') . $key;
+            
+            if (is_array($value) || is_object($value)) {
+                // Recursively flatten nested arrays/objects
+                $flattened = $this->flattenArray((array)$value, $newKey);
+                $result = array_merge($result, $flattened);
+            } else {
+                $result[$newKey] = $value;
+            }
+        }
+        
+        return $result;
+    }
+    
     /**
      * Render the widget as HTML
      * 

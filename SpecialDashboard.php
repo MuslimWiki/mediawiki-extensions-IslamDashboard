@@ -8,6 +8,10 @@
 
 namespace MediaWiki\Extension\IslamDashboard;
 
+use MediaWiki\Extension\IslamDashboard\Navigation\NavigationManager;
+use MediaWiki\Extension\IslamDashboard\Navigation\NavigationRenderer;
+use MediaWiki\Extension\IslamDashboard\WidgetManager;
+
 use Html;
 use MediaWiki\MediaWikiServices;
 use SpecialPage;
@@ -37,15 +41,59 @@ class SpecialDashboard extends SpecialPage {
             return;
         }
         
+        // Add body class for skin-specific styling
+        $out->addBodyClasses( 'islam-dashboard-page' );
+        
+        // Let the skin handle its own styles first
+        if ( method_exists( $out, 'addSkinModuleStyles' ) ) {
+            $out->addSkinModuleStyles( 'ext.islamDashboard.skin' );
+        }
+        
         // Add module styles and scripts
-        $out->addModuleStyles( [ 'ext.islamDashboard', 'ext.islamDashboard.navigation' ] );
-        $out->addModules( [ 'ext.islamDashboard', 'ext.islamDashboard.navigation' ] );
+        // Load our clean styles after skin styles to allow for overrides
+        $out->addModuleStyles( [
+            'ext.islamDashboard.styles',
+            'ext.islamDashboard',
+            'ext.islamDashboard.navigation',
+            'oojs-ui.styles.icons-interactions',
+            'oojs-ui.styles.icons-content'
+        ]);
+        
+        // Add JavaScript modules
+        $out->addModules( [
+            'ext.islamDashboard',
+            'ext.islamDashboard.navigation',
+            'mediawiki.api',
+            'mediawiki.util',
+            'mediawiki.jqueryMsg',
+            'mediawiki.cookie',
+            'mediawiki.storage'
+        ]);
+        
+        // Ensure skin compatibility
+        if ( method_exists( $out, 'enableOOUI' ) ) {
+            $out->enableOOUI();
+        }
         
         // Set page title
         $out->setPageTitle( $this->msg( 'islamdashboard' )->text() );
         
-        // Add the main dashboard container
-        $out->addHTML( $this->getDashboardHTML() );
+        // Add configuration variables for JavaScript
+        $out->addJsConfigVars( [
+            'wgIslamDashboardConfig' => [
+                'apiUrl' => wfScript( 'api' ),
+                'editToken' => $user->getEditToken(),
+                'canEdit' => $this->userHasRight( 'edit' ),
+                'messages' => [
+                    'confirmRemoveWidget' => $this->msg( 'islamdashboard-confirm-remove-widget' )->text(),
+                    'widgetError' => $this->msg( 'islamdashboard-widget-error' )->text(),
+                    'loading' => $this->msg( 'islamdashboard-loading' )->text()
+                ]
+            ]
+        ] );
+        
+        // Render the dashboard template
+        $out->addHTML( $this->getDashboardTemplateHTML() );
     }
     
     /**
@@ -438,5 +486,75 @@ class SpecialDashboard extends SpecialPage {
      */
     protected function getGroupName() {
         return 'users';
+    }
+    
+    /**
+     * Render the dashboard template
+     *
+     * @return string HTML for the dashboard
+     */
+    private function getDashboardTemplateHTML() {
+        $navManager = NavigationManager::getInstance();
+        $navRenderer = new NavigationRenderer( $navManager );
+        $widgetManager = WidgetManager::getInstance();
+        
+        // Prepare navigation options
+        $navOptions = [
+            'user' => $this->getUser(),
+            'currentPath' => $this->getPageTitle()->getLocalURL(),
+            'showIcons' => true,
+            'collapsible' => true
+        ];
+        
+        // Get user groups using UserGroupManager service
+        $userGroupManager = MediaWikiServices::getInstance()->getUserGroupManager();
+        $userGroups = $userGroupManager->getUserGroups( $this->getUser() );
+        
+        // Prepare all data needed by the template
+        $templateData = [
+            // Navigation data
+            'navigationHtml' => $navRenderer->getNavigationHTML( $navOptions ),
+            'currentPath' => $this->getPageTitle()->getLocalURL(),
+            
+            // User data
+            'user' => $this->getUser(),
+            'userName' => $this->getUser()->getName(),
+            'userGroups' => $userGroups,
+            'userEditCount' => $this->getUser()->getEditCount(),
+            'userRegistration' => $this->getUser()->getRegistration(),
+            
+            // Widget data
+            'widgets' => $widgetManager->getWidgetsForUser( $this->getUser() ),
+            'layout' => $widgetManager->getUserLayout( $this->getUser() ),
+            'canEdit' => $this->userHasRight( 'edit' ),
+            
+            // Messages
+            'messages' => [
+                'dashboardTitle' => $this->msg( 'islamdashboard-dashboard' )->text(),
+                'welcome' => $this->msg( 'islamdashboard-welcome' )->params( $this->getUser()->getName() )->parse(),
+                'editDashboard' => $this->msg( 'islamdashboard-edit-dashboard' )->text(),
+                'saveDashboard' => $this->msg( 'islamdashboard-save-dashboard' )->text(),
+                'cancelEdit' => $this->msg( 'cancel' )->text(),
+                'addWidget' => $this->msg( 'islamdashboard-add-widget' )->text(),
+                'loading' => $this->msg( 'islamdashboard-loading' )->text()
+            ],
+            
+            // URLs
+            'editToken' => $this->getUser()->getEditToken(),
+            'apiUrl' => wfScript( 'api' )
+        ];
+        
+        // Start output buffering and include the template
+        ob_start();
+        
+        // Make template data available in the template scope
+        $GLOBALS['islamDashboardData'] = $templateData;
+        
+        // Include the template
+        include __DIR__ . '/templates/Dashboard.php';
+        
+        // Clean up
+        unset($GLOBALS['islamDashboardData']);
+        return ob_get_clean();
     }
 }
