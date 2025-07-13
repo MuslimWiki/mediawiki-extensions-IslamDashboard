@@ -1,0 +1,1168 @@
+/**
+ * IslamDashboard - Main Styles
+ *
+ * This file contains the main styles for the IslamDashboard extension.
+ * It follows the design system of the Islam skin and uses Codex components.
+ */
+
+@import 'mediawiki.skin.variables.less';
+@import 'mediawiki.mixins.less';
+@import 'mediawiki.ui/variables.less';
+@import 'mediawiki.skin.codex-design-tokens/theme-wikimedia-ui-base.less';
+
+// =============================================
+// Variables
+// =============================================
+
+// Layout
+@spacing-unit: 16px;
+@header-height: 64px;
+@sidebar-width: 280px;
+@content-max-width: 1400px;
+@border-radius: 4px;
+
+// Colors
+@color-primary: #36c; // Primary blue
+@color-primary--hover: #2a4b8d;
+@color-success: #00af89; // Green
+@color-warning: #fc3; // Yellow
+@color-error: #d73333; // Red
+@color-text: #202122;
+@color-text--muted: #54595d;
+@color-border: #a2a9b1;
+@color-border--light: #c8ccd1;
+@color-bg: #f8f9fa;
+@color-bg--hover: #f1f3f5;
+@color-bg--active: #eaf3ff;
+
+// Shadows
+@shadow-card: 0 1px 3px rgba(0, 0, 0, 0.1);
+@shadow-card--hover: 0 4px 8px rgba(0, 0, 0, 0.06);
+@shadow-dropdown: 0 2px 12px rgba(0, 0, 0, 0.15);
+
+// Z-index
+@z-dropdown: 100;
+@z-modal: 200;
+@z-tooltip: 300;
+
+// Breakpoints
+@screen-xs: 480px;
+@screen-sm: 768px;
+@screen-md: 992px;
+@screen-lg: 1200px;
+@screen-xl: 1600px;
+
+// =============================================
+// Mixins
+// =============================================
+
+// Clearfix
+.clearfix() {
+  &::after {
+    content: '';
+    display: table;
+    clear: both;
+  }
+}
+
+// Text overflow with ellipsis
+.text-ellipsis() {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+// Hide text but keep it accessible to screen readers
+.screen-reader-text() {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  border: 0;
+}
+
+// Media queries
+.screen(@min, @max) when (isnumber(@min)) and (isnumber(@max)) {
+  @media (min-width: @min) and (max-width: @max) { @content(); }
+}
+
+.screen(@min) when (isnumber(@min)) and not (isnumber(@max)) {
+  @media (min-width: @min) { @content(); }
+}
+
+.screen(@max, false) when (isnumber(@max)) {
+  @media (max-width: @max) { @content(); }
+}
+
+// Buttons
+.button-variant(@color, @background, @border) {
+  color: @color;
+  background-color: @background;
+  border-color: @border;
+  
+  &:hover,
+  &:focus {
+    color: @color;
+    background-color: darken(@background, 5%);
+    border-color: darken(@border, 10%);
+  }
+  
+  &:active {
+    background-color: darken(@background, 10%);
+    border-color: darken(@border, 15%);
+    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
+  }
+  
+  &[disabled],
+  &.disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    box-shadow: none;
+  }
+}
+
+// Cards
+.card() {
+  background-color: #fff;
+  border-radius: @border-radius;
+  box-shadow: @shadow-card;
+  transition: box-shadow 0.2s ease, transform 0.2s ease;
+  
+  &:hover {
+    box-shadow: @shadow-card--hover;
+    transform: translateY(-2px);
+  }
+}
+
+// Grid system
+.make-grid-columns(@class) {
+  .col(@index) when (@index = 1) {
+    @item: ~".col-@{class}-@{index}";
+    .col((@index + 1), @item);
+  }
+  
+  .col(@index, @list) when (@index =< 12) {
+    @item: ~".col-@{class}-@{index}";
+    .col((@index + 1), ~"@{list}, @{item}");
+  }
+  
+  .col(@index, @list) when (@index > 12) {
+    @{list} {
+      position: relative;
+      min-height: 1px;
+      padding-left: (@spacing-unit / 2);
+      padding-right: (@spacing-unit / 2);
+    }
+  }
+  
+  .col(1);
+}
+
+// Animation
+.keyframes(@name, @rules) {
+  @-webkit-keyframes @name { @rules(); }
+  @-moz-keyframes @name { @rules(); }
+  @-ms-keyframes @name { @rules(); }
+  @-o-keyframes @name { @rules(); }
+  @keyframes @name { @rules(); }
+}
+
+// Animation for loading state
+.pulse() {
+  animation: pulse 1.5s infinite;
+  
+  .keyframes(pulse, {
+    0% { opacity: 0.6; }
+    50% { opacity: 1; }
+    100% { opacity: 0.6; }
+  });
+}
+
+// =============================================
+// Dashboard Layout
+// =============================================
+
+// Main container
+.islam-dashboard-page {
+  background-color: @color-bg;
+  min-height: 100vh;
+  padding: 0;
+  color: @color-text;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  line-height: 1.5;
+  
+  // Reset some default styles
+  * {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+  }
+  
+  // Links
+  a {
+    color: @color-primary;
+    text-decoration: none;
+    transition: color 0.2s ease;
+    
+    &:hover {
+      color: @color-primary--hover;
+      text-decoration: underline;
+    }
+  }
+  
+  // Headings
+  h1, h2, h3, h4, h5, h6 {
+    margin-top: 0;
+    font-weight: 500;
+    line-height: 1.2;
+  }
+  
+  // Buttons
+  .cdx-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.5rem 1rem;
+    border: 1px solid transparent;
+    border-radius: @border-radius;
+    font-size: 0.875rem;
+    font-weight: 500;
+    line-height: 1.5;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    
+    &--action-progressive {
+      background-color: @color-primary;
+      color: #fff;
+      
+      &:hover {
+        background-color: darken(@color-primary, 10%);
+      }
+    }
+    
+    &--action-destructive {
+      background-color: @color-error;
+      color: #fff;
+      
+      &:hover {
+        background-color: darken(@color-error, 10%);
+      }
+    }
+    
+    &--weight-primary {
+      font-weight: 600;
+    }
+  }
+}
+
+// =============================================
+// Dashboard Header
+// =============================================
+
+.islam-dashboard {
+  max-width: @content-max-width;
+  margin: 0 auto;
+  padding: @spacing-unit * 1.5;
+  
+  @media (max-width: @screen-sm) {
+    padding: @spacing-unit;
+  }
+}
+
+// Dashboard Header
+.dashboard-header {
+  margin-bottom: @spacing-unit * 2;
+  padding: @spacing-unit * 1.5;
+  background-color: #fff;
+  border-radius: @border-radius;
+  box-shadow: @shadow-card;
+  
+  h1 {
+    font-size: 1.75rem;
+    margin: 0 0 @spacing-unit;
+    color: @color-text;
+  }
+  
+  .user-info {
+    display: flex;
+    flex-direction: column;
+    gap: @spacing-unit / 2;
+    
+    .welcome-message {
+      font-size: 1.125rem;
+      color: @color-text;
+      
+      a {
+        font-weight: 600;
+      }
+    }
+    
+    .user-meta {
+      font-size: 0.875rem;
+      color: @color-text--muted;
+    }
+    
+    .user-groups {
+      display: flex;
+      flex-wrap: wrap;
+      gap: @spacing-unit / 2;
+      margin-top: @spacing-unit / 2;
+      
+      .group-tag {
+        display: inline-block;
+        padding: 0.25rem 0.5rem;
+        background-color: @color-bg--hover;
+        border-radius: 2rem;
+        font-size: 0.75rem;
+        color: @color-text--muted;
+      }
+    }
+  }
+}
+
+// =============================================
+// Dashboard Layout Grid
+// =============================================
+
+.dashboard-container {
+  display: grid;
+  grid-template-columns: 1fr @sidebar-width;
+  gap: @spacing-unit * 1.5;
+  margin-bottom: @spacing-unit * 1.5;
+  
+  @media (max-width: @screen-md) {
+    grid-template-columns: 1fr;
+  }
+}
+
+// Main content area
+.dashboard-main {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: @spacing-unit * 1.5;
+  align-content: start;
+  
+  @media (max-width: @screen-sm) {
+    grid-template-columns: 1fr;
+  }
+}
+
+// Sidebar
+.dashboard-sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: @spacing-unit * 1.5;
+  
+  @media (max-width: @screen-md) {
+    grid-row: 1;
+  }
+}
+
+// =============================================
+// Dashboard Widgets
+// =============================================
+
+.dashboard-widget {
+  .card();
+  overflow: hidden;
+  
+  .widget-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: @spacing-unit;
+    border-bottom: 1px solid @color-border--light;
+    
+    .widget-title {
+      margin: 0;
+      font-size: 1rem;
+      font-weight: 600;
+      color: @color-text;
+    }
+    
+    .widget-actions {
+      display: flex;
+      gap: @spacing-unit / 2;
+      
+      button {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 1.75rem;
+        height: 1.75rem;
+        padding: 0;
+        background: none;
+        border: none;
+        border-radius: 50%;
+        color: @color-text--muted;
+        cursor: pointer;
+        opacity: 0.7;
+        transition: all 0.2s ease;
+        
+        &:hover {
+          background-color: @color-bg--hover;
+          color: @color-primary;
+          opacity: 1;
+        }
+        
+        .oo-ui-iconElement-icon {
+          width: 1rem;
+          height: 1rem;
+          background-size: contain;
+        }
+      }
+    }
+  }
+  
+  .widget-content {
+    padding: @spacing-unit;
+    
+    > *:last-child {
+      margin-bottom: 0;
+    }
+  }
+  
+  .widget-loading {
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: @spacing-unit * 2;
+    
+    &-spinner {
+      width: 2rem;
+      height: 2rem;
+      border: 3px solid @color-border--light;
+      border-top-color: @color-primary;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+  }
+  
+  &.loading {
+    .widget-content {
+      opacity: 0.6;
+      pointer-events: none;
+    }
+    
+    .widget-loading {
+      display: flex;
+    }
+  }
+  
+  // Widget edit mode
+  .edit-mode & {
+    position: relative;
+    cursor: move;
+    
+    &::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: rgba(255, 255, 255, 0.7);
+      opacity: 0;
+      transition: opacity 0.2s ease;
+    }
+    
+    &:hover::after {
+      opacity: 1;
+    }
+  }
+}
+
+// Widget selector
+.widget-selector {
+  background-color: #fff;
+  border-radius: @border-radius;
+  box-shadow: @shadow-dropdown;
+  margin-top: @spacing-unit * 1.5;
+  overflow: hidden;
+  
+  &-title {
+    padding: @spacing-unit;
+    margin: 0;
+    font-size: 1rem;
+    font-weight: 600;
+    color: @color-text;
+    border-bottom: 1px solid @color-border--light;
+  }
+  
+  &-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: @spacing-unit;
+    padding: @spacing-unit;
+    max-height: 50vh;
+    overflow-y: auto;
+  }
+  
+  &-item {
+    display: flex;
+    align-items: flex-start;
+    gap: @spacing-unit;
+    padding: @spacing-unit;
+    border: 1px solid @color-border--light;
+    border-radius: @border-radius;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    
+    &:hover {
+      border-color: @color-primary;
+      box-shadow: 0 0 0 2px fade(@color-primary, 20%);
+    }
+    
+    &-icon {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 2.5rem;
+      height: 2.5rem;
+      background-color: @color-bg--active;
+      border-radius: 50%;
+      color: @color-primary;
+      flex-shrink: 0;
+      
+      .oo-ui-iconElement-icon {
+        width: 1.5rem;
+        height: 1.5rem;
+        background-size: contain;
+      }
+    }
+    
+    &-info {
+      flex: 1;
+      min-width: 0;
+    }
+    
+    &-title {
+      margin: 0 0 @spacing-unit / 4;
+      font-size: 0.875rem;
+      font-weight: 600;
+      color: @color-text;
+      .text-ellipsis();
+    }
+    
+    &-description {
+      margin: 0;
+      font-size: 0.8125rem;
+      color: @color-text--muted;
+      .text-ellipsis();
+      -webkit-line-clamp: 2;
+      display: -webkit-box;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+  }
+}
+
+// Empty state
+.dashboard-empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: @spacing-unit * 4 @spacing-unit * 2;
+  background-color: #fff;
+  border-radius: @border-radius;
+  box-shadow: @shadow-card;
+  
+  &-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 5rem;
+    height: 5rem;
+    margin-bottom: @spacing-unit * 1.5;
+    background-color: @color-bg--active;
+    border-radius: 50%;
+    color: @color-primary;
+    
+    .oo-ui-iconElement-icon {
+      width: 2.5rem;
+      height: 2.5rem;
+      background-size: contain;
+    }
+  }
+  
+  &-title {
+    margin: 0 0 @spacing-unit;
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: @color-text;
+  }
+  
+  &-description {
+    max-width: 36rem;
+    margin: 0 0 @spacing-unit * 1.5;
+    font-size: 1rem;
+    color: @color-text--muted;
+    line-height: 1.5;
+  }
+}
+
+// Edit controls
+.dashboard-edit-controls {
+  display: flex;
+  justify-content: center;
+  gap: @spacing-unit;
+  margin-top: @spacing-unit * 1.5;
+  padding-top: @spacing-unit * 1.5;
+  border-top: 1px solid @color-border--light;
+  
+  @media (max-width: @screen-sm) {
+    flex-direction: column;
+    align-items: stretch;
+    
+    .cdx-button {
+      width: 100%;
+    }
+  }
+}
+
+// Animations
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+// User profile
+.user-profile {
+  text-align: center;
+  padding: @spacing-unit 0;
+  margin-bottom: @spacing-unit * 1.5;
+  border-bottom: 1px solid @border-color;
+  
+  .user-avatar {
+    width: 80px;
+    height: 80px;
+    margin: 0 auto @spacing-unit;
+    background-color: #e9ecef;
+    .border-radius(50%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2rem;
+    color: @text-muted;
+  }
+  
+  .user-info {
+    h3 {
+      margin: 0 0 @spacing-unit / 2;
+      font-size: 1.25rem;
+    }
+    
+    .user-page-link {
+      color: @primary-color;
+      text-decoration: none;
+      font-size: 0.875rem;
+      
+      &:hover {
+        text-decoration: underline;
+      }
+    }
+  }
+}
+
+// Navigation menu
+.dashboard-navigation {
+  .menu-title {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: @text-muted;
+    margin: 0 0 @spacing-unit / 2;
+    padding: 0 @spacing-unit / 2;
+  }
+  
+  .nav-menu {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+  
+  .nav-item {
+    margin-bottom: 2px;
+    
+    &:last-child {
+      margin-bottom: 0;
+    }
+  }
+  
+  .nav-link {
+    display: flex;
+    align-items: center;
+    padding: @spacing-unit / 1.5 @spacing-unit;
+    color: @text-color;
+    text-decoration: none;
+    .border-radius();
+    .transition();
+    
+    &:hover {
+      background-color: fade(@primary-color, 5%);
+      color: @primary-color;
+    }
+    
+    &[data-icon]:before {
+      content: '';
+      display: inline-block;
+      width: 20px;
+      height: 20px;
+      margin-right: @spacing-unit / 1.5;
+      background-size: contain;
+      background-repeat: no-repeat;
+      background-position: center;
+      opacity: 0.7;
+    }
+    
+    &[data-icon="dashboard"]:before {
+      background-image: url(images/dashboard-icon.svg);
+    }
+    
+    &[data-icon="userAvatar"]:before {
+      background-image: url(images/user-icon.svg);
+    }
+    
+    &[data-icon="watchlist"]:before {
+      background-image: url(images/watchlist-icon.svg);
+    }
+    
+    &[data-icon="history"]:before {
+      background-image: url(images/history-icon.svg);
+    }
+    
+    &[data-icon="settings"]:before {
+      background-image: url(images/settings-icon.svg);
+    }
+    
+    &.active {
+      background-color: @primary-color;
+      color: #fff;
+      
+      &:before {
+        filter: brightness(0) invert(1);
+      }
+    }
+  }
+}
+
+// Main content area
+.islam-dashboard-main {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: @spacing-unit * 1.5;
+  align-content: start;
+}
+
+// Widgets
+.dashboard-widget {
+  background: #fff;
+  .border-radius();
+  .box-shadow();
+  overflow: hidden;
+  
+  .widget-title {
+    font-size: 1.125rem;
+    font-weight: 500;
+    margin: 0;
+    padding: @spacing-unit * 1.25;
+    border-bottom: 1px solid @border-color;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    
+    .widget-actions {
+      font-size: 0.875rem;
+      font-weight: normal;
+      
+      a {
+        color: @primary-color;
+        text-decoration: none;
+        
+        &:hover {
+          text-decoration: underline;
+        }
+      }
+    }
+  }
+  
+  .widget-content {
+    padding: @spacing-unit * 1.25;
+  }
+  
+  // Welcome widget
+  &.welcome-widget {
+    grid-column: 1 / -1;
+    
+    .widget-content {
+      display: grid;
+      grid-template-columns: 1fr 300px;
+      gap: @spacing-unit * 2;
+      
+      @media (max-width: 768px) {
+        grid-template-columns: 1fr;
+      }
+    }
+    
+    .welcome-message {
+      font-size: 1.125rem;
+      line-height: 1.6;
+      color: @text-muted;
+    }
+    
+    .quick-stats {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+      gap: @spacing-unit;
+      margin-top: @spacing-unit * 1.5;
+    }
+    
+    .stat-box {
+      background: @dashboard-bg;
+      padding: @spacing-unit;
+      .border-radius();
+      text-align: center;
+      
+      .stat-value {
+        font-size: 1.5rem;
+        font-weight: 600;
+        color: @primary-color;
+        margin-bottom: @spacing-unit / 3;
+      }
+      
+      .stat-label {
+        font-size: 0.75rem;
+        color: @text-muted;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+      }
+    }
+  }
+  
+  // Recent activity widget
+  &.recent-activity {
+    grid-column: 1 / -1;
+    
+    .activity-list {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+      
+      .activity-item {
+        padding: @spacing-unit 0;
+        border-bottom: 1px solid @border-color;
+        
+        &:last-child {
+          border-bottom: none;
+        }
+        
+        .activity-time {
+          font-size: 0.75rem;
+          color: @text-muted;
+          margin-bottom: @spacing-unit / 4;
+        }
+        
+        .activity-content {
+          display: flex;
+          align-items: flex-start;
+          
+          .activity-icon {
+            margin-right: @spacing-unit;
+            color: @primary-color;
+          }
+          
+          .activity-details {
+            flex: 1;
+            
+            .activity-title {
+              font-weight: 500;
+              margin: 0 0 @spacing-unit / 4;
+            }
+            
+            .activity-description {
+              font-size: 0.875rem;
+              color: @text-muted;
+              margin: 0;
+            }
+          }
+        }
+      }
+    }
+    
+    .no-activity {
+      text-align: center;
+      padding: @spacing-unit * 2;
+      color: @text-muted;
+      font-style: italic;
+    }
+  }
+  
+  // Quick actions widget
+  &.quick-actions {
+    .quick-actions-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+      gap: @spacing-unit;
+      
+      @media (max-width: 480px) {
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+    
+    .quick-action {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: @spacing-unit * 1.5;
+      background: @dashboard-bg;
+      .border-radius();
+      text-align: center;
+      text-decoration: none;
+      color: @text-color;
+      .transition();
+      
+      &:hover {
+        background: darken(@dashboard-bg, 3%);
+        transform: translateY(-2px);
+        .box-shadow(0 4px 8px rgba(0, 0, 0, 0.1));
+      }
+      
+      .action-icon {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 48px;
+        height: 48px;
+        background: @primary-color;
+        color: #fff;
+        .border-radius(50%);
+        margin-bottom: @spacing-unit;
+        font-size: 1.5rem;
+      }
+      
+      .action-text {
+        font-size: 0.875rem;
+        font-weight: 500;
+      }
+    }
+  }
+  
+  // Notifications widget
+  &.notifications {
+    .notifications-list {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+      
+      .notification-item {
+        padding: @spacing-unit 0;
+        border-bottom: 1px solid @border-color;
+        
+        &:last-child {
+          border-bottom: none;
+        }
+        
+        .notification-time {
+          font-size: 0.75rem;
+          color: @text-muted;
+          margin-bottom: @spacing-unit / 4;
+        }
+        
+        .notification-content {
+          display: flex;
+          align-items: flex-start;
+          
+          .notification-icon {
+            margin-right: @spacing-unit;
+            color: @primary-color;
+          }
+          
+          .notification-details {
+            flex: 1;
+            
+            .notification-title {
+              font-weight: 500;
+              margin: 0 0 @spacing-unit / 4;
+            }
+            
+            .notification-description {
+              font-size: 0.875rem;
+              color: @text-muted;
+              margin: 0;
+            }
+          }
+          
+          .notification-actions {
+            margin-left: @spacing-unit;
+            
+            .mark-read {
+              background: none;
+              border: none;
+              color: @text-muted;
+              cursor: pointer;
+              padding: 0;
+              font-size: 0.875rem;
+              
+              &:hover {
+                color: @primary-color;
+              }
+            }
+          }
+        }
+      }
+    }
+    
+    .no-notifications {
+      text-align: center;
+      padding: @spacing-unit * 2;
+      color: @text-muted;
+      font-style: italic;
+    }
+  }
+}
+
+// Right sidebar
+.islam-dashboard-right-sidebar {
+  display: grid;
+  gap: @spacing-unit * 1.5;
+  align-content: start;
+  
+  @media (min-width: 1200px) {
+    min-width: 300px;
+  }
+}
+
+// Quick links widget
+.quick-links {
+  .quick-links-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    
+    .quick-link-item {
+      margin-bottom: 2px;
+      
+      &:last-child {
+        margin-bottom: 0;
+      }
+    }
+    
+    .quick-link {
+      display: flex;
+      align-items: center;
+      padding: @spacing-unit / 1.5 @spacing-unit;
+      color: @text-color;
+      text-decoration: none;
+      .border-radius();
+      .transition();
+      
+      &:hover {
+        background-color: fade(@primary-color, 5%);
+        color: @primary-color;
+      }
+      
+      &[data-icon]:before {
+        content: '';
+        display: inline-block;
+        width: 20px;
+        height: 20px;
+        margin-right: @spacing-unit / 1.5;
+        background-size: contain;
+        background-repeat: no-repeat;
+        background-position: center;
+        opacity: 0.7;
+      }
+      
+      &[data-icon="help"]:before {
+        background-image: url(images/help-icon.svg);
+      }
+      
+      &[data-icon="helpNotice"]:before {
+        background-image: url(images/faq-icon.svg);
+      }
+      
+      &[data-icon="group"]:before {
+        background-image: url(images/community-icon.svg);
+      }
+    }
+  }
+}
+
+// Responsive adjustments
+@media (max-width: 1200px) {
+  .islam-dashboard-grid {
+    grid-template-columns: @sidebar-width 1fr;
+  }
+  
+  .islam-dashboard-main {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 992px) {
+  .islam-dashboard-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .islam-dashboard-sidebar,
+  .islam-dashboard-right-sidebar {
+    position: static;
+    margin-bottom: @spacing-unit * 1.5;
+  }
+}
+
+@media (max-width: 768px) {
+  .islam-dashboard-container {
+    padding: @spacing-unit;
+  }
+  
+  .welcome-widget .widget-content {
+    grid-template-columns: 1fr !important;
+  }
+  
+  .quick-actions-grid {
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)) !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .quick-actions-grid {
+    grid-template-columns: 1fr 1fr !important;
+  }
+  
+  .dashboard-widget {
+    .widget-title {
+      padding: @spacing-unit;
+    }
+    
+    .widget-content {
+      padding: @spacing-unit;
+    }
+  }
+}
+
+// Print styles
+@media print {
+  .islam-dashboard-sidebar,
+  .islam-dashboard-right-sidebar,
+  .widget-actions,
+  .quick-actions {
+    display: none !important;
+  }
+  
+  .islam-dashboard-container {
+    padding: 0;
+    background: none;
+  }
+  
+  .dashboard-widget {
+    box-shadow: none;
+    border: 1px solid #ddd;
+    break-inside: avoid;
+  }
+}
