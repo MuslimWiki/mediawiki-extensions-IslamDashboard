@@ -1,20 +1,42 @@
-# IslamDashboard Extension Structure
+# IslamDashboard Documentation Structure
 
-This document outlines the file and folder structure of the IslamDashboard extension, explaining the purpose of each directory and file.
+This document outlines the organization of the IslamDashboard documentation and codebase, following the latest standards and best practices.
 
-## Root Directory Structure
+## Documentation Organization
+
+```
+docs/
+├── api/                     # API documentation and references
+│   └── reference.md         # API reference documentation
+├── architecture/            # System architecture documentation
+│   ├── overview.md          # High-level architecture overview
+│   └── navigation.md        # Navigation system specifications
+├── contributing/            # Contribution guidelines
+│   ├── code-of-conduct.md   # Community guidelines
+│   └── guide.md             # Contribution guide
+├── development/             # Development documentation
+│   ├── guide.md             # Development guide
+│   ├── configuration.md     # Configuration reference
+│   └── widgets.md           # Widget development guide
+├── releases/                # Release notes and changelog
+│   └── REL0_2_1.md          # Versioned release notes
+└── structure.md             # This file - documentation structure
+```
+
+## Codebase Structure
 
 ```
 extensions/IslamDashboard/
-├── docs/                    # Documentation files
+├── docs/                    # Documentation (see above)
 ├── i18n/                    # Internationalization files
+│   └── en.json              # English translations
 ├── includes/                # Core PHP classes
 │   ├── Api/                 # API modules
 │   ├── Hooks/               # Hook handlers
 │   ├── Special/             # Special pages
 │   └── Widgets/             # Widget implementations
 ├── resources/               # Frontend resources
-│   ├── modules/             # General JavaScript modules (deprecated, use widgets/)
+│   ├── modules/             # General JavaScript modules
 │   └── widgets/             # Widget-specific frontend resources
 ├── templates/               # Server-side templates
 │   └── widgets/             # Widget-specific templates
@@ -25,14 +47,23 @@ extensions/IslamDashboard/
 └── README.md                # Basic documentation
 ```
 
-## Detailed Directory Descriptions
+## Documentation Guidelines
 
-### 1. `/docs`
-Contains all documentation files including:
-- `API_REFERENCE.md`: API documentation
-- `ARCHITECTURE.md`: System architecture overview
-- `STRUCTURE.md`: This file - explains the directory structure
-- Other documentation files
+1. **File Naming**:
+   - Use lowercase with hyphens for file names (e.g., `quick-start.md`)
+   - Keep file names concise but descriptive
+   - Use `.md` extension for Markdown files
+
+2. **Versioning**:
+   - Each release gets a `RELx_y_z.md` file in the `releases/` directory
+   - Update `CHANGELOG.md` with a summary of changes
+   - Update version in `extension.json`
+
+3. **Content Standards**:
+   - Use clear, concise language
+   - Include code examples where helpful
+   - Link to related documentation
+   - Keep lines under 100 characters
 
 ### 2. `/i18n`
 Internationalization files for different languages. Each language has its own JSON file (e.g., `en.json`, `ar.json`).

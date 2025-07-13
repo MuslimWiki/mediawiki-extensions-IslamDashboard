@@ -5,6 +5,21 @@ All notable changes to the IslamDashboard extension will be documented in this f
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.2] - 2025-07-13
+### Added
+- Comprehensive documentation for API endpoints and usage
+- Widget development guide with examples and best practices
+- Internationalization and localization documentation
+- Testing guide with PHPUnit and QUnit examples
+- Versioning and release process documentation
+- Code of conduct and contribution guidelines
+
+### Changed
+- Restructured documentation directory for better organization
+- Updated all documentation to follow MediaWiki standards
+- Improved code examples and added more detailed explanations
+- Standardized documentation format and style
+
 ## [0.2.1] - 2025-07-13
 ### Fixed
 - Fixed dashboard layout to properly display main content next to sidebar navigation

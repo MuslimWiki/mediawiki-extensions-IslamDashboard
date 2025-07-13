@@ -90,12 +90,25 @@ extensions/IslamDashboard/
    ```
 
 2. **Register the Widget**
-   Add your widget to the list of available widgets in `IslamDashboardHooks.php`:
+   Register your widget with the WidgetManager. The best place to do this is in your extension's setup file (e.g., `extension.json` or `IslamDashboard.php`). Here's how to register a widget:
 
    ```php
-   public static function onIslamDashboardGetWidgets( array &$widgets ) {
-       $widgets[] = new Widgets\MyCustomWidget();
-       return true;
+   // Get the WidgetManager instance
+   $widgetManager = \MediaWiki\Extension\IslamDashboard\WidgetManager::getInstance();
+   
+   // Register your widget
+   $widgetManager->registerWidget(new \MediaWiki\Extension\IslamDashboard\Widgets\MyCustomWidget());
+   ```
+
+   For core widgets, you can add them to the `registerCoreWidgets()` method in the `WidgetManager` class:
+
+   ```php
+   private function registerCoreWidgets() {
+       $this->registerWidget(new Widgets\WelcomeWidget());
+       $this->registerWidget(new Widgets\RecentActivityWidget());
+       $this->registerWidget(new Widgets\QuickActionsWidget());
+       // Add your custom widget here
+       $this->registerWidget(new Widgets\MyCustomWidget());
    }
    ```
 

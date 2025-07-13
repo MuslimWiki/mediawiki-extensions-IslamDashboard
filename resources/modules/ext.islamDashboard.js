@@ -12,17 +12,39 @@
      */
     function initDashboard() {
         try {
+            if (!window.jQuery) {
+                throw new Error('jQuery is not loaded');
+            }
+            
+            if (!mw.Api) {
+                throw new Error('MediaWiki API is not available');
+            }
+            
             // Initialize any interactive components here
             setupEventListeners();
-            loadUserData();
-            setupWidgets();
+            loadUserData().catch(handleError);
+            setupWidgets().catch(handleError);
             
             // Mark as initialized
             window.IslamDashboard.initialized = true;
             mw.log('IslamDashboard: Initialized successfully');
         } catch (e) {
-            mw.log.error('IslamDashboard: Error during initialization', e);
+            const errorMsg = 'IslamDashboard: Error during initialization - ' + e.message;
+            mw.log.error(errorMsg, e);
+            mw.notify(mw.msg('islamdashboard-error-init', e.message), {type: 'error'});
         }
+    }
+    
+    /**
+     * Handle errors consistently across the application
+     * @param {Error} error - The error object
+     * @param {string} [context=''] - Additional context about where the error occurred
+     */
+    function handleError(error, context = '') {
+        const errorMsg = 'IslamDashboard Error' + (context ? ` (${context})` : '') + ': ' + error.message;
+        mw.log.error(errorMsg, error);
+        mw.notify(mw.msg('islamdashboard-error-generic', context || 'unknown', error.message), {type: 'error'});
+        return Promise.reject(error);
     }
 
     /**

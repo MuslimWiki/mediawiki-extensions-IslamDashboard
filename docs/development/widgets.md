@@ -1,5 +1,22 @@
 # Widget Development Guide - IslamDashboard
 
+```mermaid
+graph TD
+    A[Start] --> B[Create Widget Class]
+    B --> C[Define Template]
+    C --> D[Add Client-side JS]
+    D --> E[Add Styling]
+    E --> F[Register Widget]
+    F --> G[Test Widget]
+    G --> H[Document Widget]
+    H --> I[Done]
+    
+    style A fill:#f9f,stroke:#333,stroke-width:2px
+    style I fill:#bbf,stroke:#333,stroke-width:2px
+```
+
+## Table of Contents
+
 ## Table of Contents
 - [Overview](#overview)
 - [Widget Architecture](#widget-architecture)
@@ -58,9 +75,99 @@ Widgets are the core building blocks of the IslamDashboard, allowing users to cu
 
 ### 1. Server-side Implementation
 
-Create a new PHP class that extends `DashboardWidget`:
+#### Step 1: Create the Widget Class
+
+Create a new PHP class that extends `DashboardWidget` in `includes/Widgets/`:
 
 ```php
+<?php
+namespace MediaWiki\Extension\IslamDashboard\Widgets;
+
+use MediaWiki\Extension\IslamDashboard\Widgets\DashboardWidget;
+use Html;
+use Message;
+use MediaWiki\MediaWikiServices;
+
+/**
+ * ExampleWidget - A sample widget demonstrating widget development
+ * 
+ * This widget shows how to create a custom widget with configuration options,
+ * data fetching, and template rendering.
+ */
+class ExampleWidget extends DashboardWidget {
+    /**
+     * Default configuration values
+     * @var array
+     */
+    protected $defaultConfig = [
+        'title' => '',
+        'limit' => 5,
+        'showThumbnails' => true,
+        'refreshInterval' => 300 // 5 minutes
+    ];
+
+    /**
+     * Get the widget's unique identifier
+     * @return string
+     */
+    public static function getType(): string {
+        return 'example-widget';
+    }
+
+    // ... rest of the class implementation ...
+}
+```
+
+#### Step 2: Implement Required Methods
+
+```php
+/**
+ * Get the widget's display name
+ * @return Message
+ */
+public function getName(): Message {
+    return $this->msg('examplewidget-name');
+}
+
+/**
+ * Get the widget's description
+ * @return Message
+ */
+public function getDescription(): Message {
+    return $this->msg('examplewidget-desc');
+}
+```
+
+#### Step 3: Implement Content Generation
+
+```php
+/**
+ * Get the widget's HTML content
+ * @return string
+ */
+public function getContent(): string {
+    $data = [
+        'title' => $this->getConfigValue('title', $this->getName()->text()),
+        'items' => $this->fetchData(),
+        'config' => $this->config
+    ];
+    
+    return $this->renderTemplate('ExampleWidget', $data);
+}
+
+/**
+ * Fetch widget data
+ * @return array
+ */
+protected function fetchData(): array {
+    $limit = (int)$this->getConfigValue('limit', 5);
+    // Example data fetching logic
+    return [
+        ['id' => 1, 'title' => 'Example Item 1'],
+        ['id' => 2, 'title' => 'Example Item 2']
+    ];
+}
+```
 <?php
 namespace MediaWiki\Extension\IslamDashboard\Widgets;
 
@@ -351,6 +458,94 @@ class MyCustomWidget extends DashboardWidget {
 ```
 
 ### 2. Template File
+
+Create a Mustache template in `templates/`:
+
+```html
+<!-- templates/ExampleWidget.mustache -->
+<div class="example-widget">
+    <h3 class="widget-title">{{title}}</h3>
+    <div class="widget-content">
+        {{#items}}
+        <div class="widget-item">
+            {{#showThumbnails}}
+            <div class="item-thumbnail">
+                <img src="{{thumbnail}}" alt="{{title}}" />
+            </div>
+            {{/showThumbnails}}
+            <div class="item-content">
+                <h4>{{title}}</h4>
+                <p>{{description}}</p>
+            </div>
+        </div>
+        {{/items}}
+        {{^items}}
+        <div class="widget-empty">
+            {{msg-empty}}
+        </div>
+        {{/items}}
+    </div>
+</div>
+```
+
+### 3. Client-side Implementation
+
+Create a JavaScript file in `resources/widgets/`:
+
+```javascript
+// resources/widgets/ext.islamDashboard.widgets.exampleWidget.js
+( function ( $, mw ) {
+    'use strict';
+
+    /**
+     * Initialize the ExampleWidget
+     */
+    function initExampleWidget( $container ) {
+        // Widget initialization code
+        $container.on('click', '.widget-item', function() {
+            // Handle item click
+            console.log('Item clicked');
+        });
+
+        // Set up auto-refresh if enabled
+        var refreshInterval = $container.data('refresh-interval');
+        if (refreshInterval) {
+            setInterval(function() {
+                refreshWidget($container);
+            }, refreshInterval * 1000);
+        }
+    }
+
+    /**
+     * Refresh widget content
+     */
+    function refreshWidget($container) {
+        var widgetId = $container.attr('id');
+        
+        // Show loading state
+        $container.addClass('loading');
+        
+        // Fetch updated content
+        new mw.Api().get({
+            action: 'islamdashboard-get-widget-content',
+            widget: widgetId
+        }).done(function(data) {
+            // Update widget content
+            $container.html(data.html);
+            // Re-initialize any widgets within the content
+            mw.hook('wikipage.content').fire($container);
+        }).always(function() {
+            $container.removeClass('loading');
+        });
+    }
+
+    // Register widget initialization
+    mw.hook('islamdashboard.widgets').add(function(widgets) {
+        widgets.register('example-widget', initExampleWidget);
+    });
+
+}( jQuery, mediaWiki ));
+```
 
 Create a template file in `templates/widgets/MyCustomWidget.mustache`:
 
