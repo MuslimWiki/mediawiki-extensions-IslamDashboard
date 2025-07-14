@@ -4,7 +4,7 @@
 [![MediaWiki: 1.43+](https://img.shields.io/badge/MediaWiki-1.43%2B-blue.svg)](https://www.mediawiki.org/)
 [![Version](https://img.shields.io/badge/Version-0.3.1-blue)](CHANGELOG.md)
 [![Code Style](https://img.shields.io/badge/code%20style-MediaWiki-brightgreen)](https://www.mediawiki.org/wiki/Manual:Coding_conventions)
-[![Requires IslamCore](https://img.shields.io/badge/Requires-IslamCore-orange)](https://github.com/muslim-wiki/IslamCore)
+[![Requires IslamCore](https://img.shields.io/badge/Requires-IslamCore-orange)](https://github.com/MuslimWiki/mediawiki-extensions-IslamCore)
 
 A modern, extensible user dashboard extension for MediaWiki, featuring modular widgets, responsive navigation, and seamless integration with the Islam Skin. The dashboard provides users with a personalized interface to access important information and perform common tasks efficiently.
 
@@ -39,7 +39,7 @@ A modern, extensible user dashboard extension for MediaWiki, featuring modular w
 
 - PHP 8.0+
 - MediaWiki 1.43+
-- [IslamCore](https://github.com/muslim-wiki/IslamCore) (required)
+- [IslamCore](https://github.com/MuslimWiki/mediawiki-extensions-IslamCore) (required)
 - [Codex](https://doc.wikimedia.org/codex/) (for UI components)
 - [Islam Skin](https://www.mediawiki.org/wiki/Skin:Islam) (recommended)
 - Composer (for development)
@@ -51,7 +51,7 @@ A modern, extensible user dashboard extension for MediaWiki, featuring modular w
 
 ### Prerequisites
 
-1. First, install and enable [IslamCore](https://github.com/muslim-wiki/IslamCore) extension
+1. First, install and enable [IslamCore](https://github.com/MuslimWiki/mediawiki-extensions-IslamCore) extension
 
 ### Installing IslamDashboard
 
@@ -96,7 +96,7 @@ wfLoadExtension( 'IslamDashboard' );
 
 ### Available Configuration Options
 
-> **Note**: Many core configurations are now handled by IslamCore. Refer to the [IslamCore documentation](https://github.com/muslim-wiki/IslamCore) for more details.
+> **Note**: Many core configurations are now handled by IslamCore. Refer to the [IslamCore documentation](https://github.com/MuslimWiki/mediawiki-extensions-IslamCore) for more details.
 
 ## 🏗️ Project Structure
 
