@@ -9,15 +9,15 @@
 
 namespace MediaWiki\Extension\IslamDashboard\Widgets;
 
-use MediaWiki\MediaWikiServices;
-use MediaWiki\Linker\LinkRenderer;
-use MediaWiki\Linker\LinkTarget;
-use MediaWiki\Revision\RevisionRecord;
-use MediaWiki\Title\Title;
-use MediaWiki\SpecialPage\SpecialPage;
-use MediaWiki\Title\TitleFactory;
 use MediaWiki\Context\IContextSource;
 use MediaWiki\Html\Html;
+use MediaWiki\Linker\LinkRenderer;
+use MediaWiki\Linker\LinkTarget;
+use MediaWiki\MediaWikiServices;
+use MediaWiki\Revision\RevisionRecord;
+use MediaWiki\SpecialPage\SpecialPage;
+use MediaWiki\Title\Title;
+use MediaWiki\Title\TitleFactory;
 use RecentChange;
 use User;
 

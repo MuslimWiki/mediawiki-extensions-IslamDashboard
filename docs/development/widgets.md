@@ -77,7 +77,7 @@ Widgets are the core building blocks of the IslamDashboard, allowing users to cu
 
 #### Step 1: Create the Widget Class
 
-Create a new PHP class that extends `DashboardWidget` in `includes/Widgets/`:
+Create a new PHP class that extends `DashboardWidget` in `src/Widgets/` (following PSR-4 autoloading):
 
 ```php
 <?php
@@ -711,11 +711,13 @@ Create a Less file in `resources/styles/widgets/my-custom-widget.less`:
 ## Widget Registration
 
 ### 1. Class Registration
-Register your widget class in `extension.json`:
+With PSR-4 autoloading, your widget class will be automatically discovered based on its namespace and location in the `src/` directory. Place your widget class in the `src/Widgets/` directory with the appropriate namespace:
 
-```json
-"AutoloadClasses": {
-    "MediaWiki\\Extension\\IslamDashboard\\Widgets\\MyCustomWidget": "includes/Widgets/MyCustomWidget.php"
+```php
+namespace MediaWiki\Extension\IslamDashboard\Widgets;
+
+class MyCustomWidget extends DashboardWidget {
+    // Widget implementation
 }
 ```
 
@@ -724,7 +726,18 @@ Register the widget in your extension's hooks:
 
 ```php
 public static function onExtensionRegistration() {
-    WidgetManager::getInstance()->registerWidget(MyCustomWidget::class);
+    WidgetManager::getInstance()->registerWidget(
+        new \MediaWiki\Extension\IslamDashboard\Widgets\MyCustomWidget()
+    );
+}
+```
+
+### 3. Autoloading Configuration (extension.json)
+PSR-4 autoloading is already configured in `extension.json`:
+
+```json
+"AutoloadNamespaces": {
+    "MediaWiki\\Extension\\IslamDashboard\\": "src/"
 }
 ```
 

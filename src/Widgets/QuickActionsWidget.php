@@ -9,11 +9,11 @@
 
 namespace MediaWiki\Extension\IslamDashboard\Widgets;
 
+use MediaWiki\Context\IContextSource;
 use MediaWiki\Html\Html;
 use MediaWiki\MediaWikiServices;
 use MediaWiki\SpecialPage\SpecialPage;
 use MediaWiki\Title\Title;
-use MediaWiki\Context\IContextSource;
 use User;
 
 /**

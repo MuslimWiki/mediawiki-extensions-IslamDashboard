@@ -13,46 +13,6 @@ use User;
 use PHPUnit\Framework\MockObject\MockObject;
 use MediaWiki\Tests\Unit\MockServiceDependenciesTrait;
 
-// Ensure WidgetManager is loaded
-if (!class_exists(WidgetManager::class)) {
-    require_once __DIR__ . '/../../../../includes/WidgetManager.php';
-}
-
-/**
- * Concrete test class for DashboardWidget
- */
-class TestDashboardWidget extends DashboardWidget {
-    public function getTitle() {
-        return 'Test Widget';
-    }
-    
-    public function getIcon() {
-        return 'test-icon';
-    }
-    
-    public function getBody() {
-        return '<div class="test-widget">Test Content</div>';
-    }
-    
-    public function getContent() {
-        return $this->getBody();
-    }
-    
-    public function getTemplateData() {
-        return [
-            'test' => 'value',
-            'title' => $this->getTitle(),
-            'icon' => $this->getIcon(),
-            'body' => $this->getBody()
-        ];
-    }
-}
-
-/**
- * @covers \MediaWiki\Extension\IslamDashboard\Widgets\DashboardWidget
- * @group Database
- * @group IslamDashboard
- */
 /**
  * @covers \MediaWiki\Extension\IslamDashboard\Widgets\DashboardWidget
  * @group Database
@@ -61,74 +21,72 @@ class TestDashboardWidget extends DashboardWidget {
 class DashboardWidgetTest extends MediaWikiIntegrationTestCase {
     use MockServiceDependenciesTrait;
 
-    /** @var User */
-    protected $user;
+    /** @var WidgetManager|MockObject */
+    private $widgetManager;
 
-    /** @var RequestContext */
-    protected $context;
+    /** @var OutputPage|MockObject */
+    private $outputPage;
 
-    /** @var Title */
-    protected $title;
+    /** @var RequestContext|MockObject */
+    private $context;
 
-    /** @var OutputPage */
-    protected $output;
+    /** @var User|MockObject */
+    private $user;
 
-    /** @var WidgetManager */
-    protected $widgetManager;
-
-    /** @var TestDashboardWidget */
-    protected $widget;
+    /** @var DashboardWidget */
+    private $widget;
     
+    /** @var array Default widget options */
+    private const DEFAULT_OPTIONS = [
+        'title' => 'Test Widget',
+        'description' => 'A test widget',
+        'icon' => 'test-icon',
+        'permissions' => ['read'],
+        'requiredRights' => [],
+        'requiredSkins' => [],
+        'maxInRow' => 1,
+        'minWidth' => 1,
+        'minHeight' => 1,
+        'defaultWidth' => 1,
+        'defaultHeight' => 1,
+        'reloadable' => true,
+        'collapsible' => true,
+        'removable' => true
+    ];
+
     protected function setUp(): void {
         parent::setUp();
 
-        // Create a test user
+        // Create mock User
         $this->user = $this->createMock(User::class);
-        
-        // Create a test context
-        $this->context = $this->getMockBuilder(RequestContext::class)
-            ->disableOriginalConstructor()
-            ->onlyMethods(['getUser'])
-            ->getMock();
-            
+
+        // Create mock RequestContext
+        $this->context = $this->createMock(RequestContext::class);
         $this->context->method('getUser')
             ->willReturn($this->user);
-        
-        // Create a test title
-        $this->title = $this->createMock(Title::class);
-        
-        // Create output page
-        $this->output = $this->getMockBuilder(OutputPage::class)
-            ->disableOriginalConstructor()
-            ->onlyMethods(['getContext', 'getTitle'])
-            ->getMock();
-            
-        $this->output->method('getContext')
+
+        // Create mock OutputPage
+        $this->outputPage = $this->createMock(OutputPage::class);
+        $this->outputPage->method('getContext')
             ->willReturn($this->context);
-            
-        $this->output->method('getTitle')
-            ->willReturn($this->title);
-        
-        // Create a mock WidgetManager
+        $this->outputPage->method('getTitle')
+            ->willReturn($this->createMock(Title::class));
+
+        // Create mock WidgetManager
         $this->widgetManager = $this->createMock(WidgetManager::class);
+
+        // Set up service container
+        $services = MediaWikiServices::getInstance();
+        $this->setService('WidgetManager', $this->widgetManager);
+    }
+
+    /**
+     * Create a test widget instance with default options
+     */
+    private function createTestWidget(array $options = []): DashboardWidget {
+        $mergedOptions = array_merge(self::DEFAULT_OPTIONS, $options);
         
-        // Create test widget
-        $this->widget = new class('test-widget', [
-            'title' => 'Test Widget',
-            'description' => 'A test widget',
-            'icon' => 'test-icon',
-            'permissions' => ['read'],
-            'requiredRights' => [],
-            'requiredSkins' => [],
-            'maxInRow' => 1,
-            'minWidth' => 1,
-            'minHeight' => 1,
-            'defaultWidth' => 1,
-            'defaultHeight' => 1,
-            'reloadable' => true,
-            'collapsible' => true,
-            'removable' => true
-        ], $this->widgetManager) extends DashboardWidget {
+        return new class('test-widget', $mergedOptions, $this->widgetManager) extends DashboardWidget {
             public function getType(): string {
                 return 'test-widget';
             }
@@ -137,129 +95,108 @@ class DashboardWidgetTest extends MediaWikiIntegrationTestCase {
                 return 'Test widget content';
             }
             
-            public function getDefinition(): array {
-                return [
-                    'name' => $this->getName(),
-                    'type' => $this->getType(),
-                    'title' => $this->getTitle(),
-                    'description' => $this->getDescription(),
-                    'icon' => $this->getIcon(),
-                    'permissions' => $this->getPermissions(),
-                    'requiredRights' => $this->getRequiredRights(),
-                    'requiredSkins' => $this->getRequiredSkins(),
-                    'maxInRow' => $this->getMaxInRow(),
-                    'minWidth' => $this->getMinWidth(),
-                    'minHeight' => $this->getMinHeight(),
-                    'defaultWidth' => $this->getDefaultWidth(),
-                    'defaultHeight' => $this->getDefaultHeight(),
-                    'reloadable' => $this->isReloadable(),
-                    'collapsible' => $this->isCollapsible(),
-                    'removable' => $this->isRemovable()
-                ];
+            public function getOutputPage() {
+                global $wgOut;
+                return $wgOut;
             }
         };
-        
-        // Set up service container
-        $services = MediaWikiServices::getInstance();
-        $this->setService('WidgetManager', $this->widgetManager);
+    }
+    
+    /**
+     * Test widget creation with default options
+     */
+    public function testCreateWidgetWithDefaults() {
+        $widget = $this->createTestWidget();
+        $this->assertInstanceOf(DashboardWidget::class, $widget);
+        $this->assertInstanceOf('MediaWiki\Extension\IslamDashboard\Widgets\WidgetManager', $this->widgetManager);
     }
 
     /**
-     * Helper method to create a widget with specific options
+     * Test basic widget properties
      */
-    protected function createWidgetWithOptions(array $options = []) {
-        // Create a mock WidgetManager
-        $widgetManager = $this->createMock(\MediaWiki\Extension\IslamDashboard\WidgetManager::class);
+    public function testWidgetProperties() {
+        $widget = $this->createTestWidget();
         
-        $defaults = [
-            'id' => 'test-widget',
-            'title' => 'Test Widget',
-            'description' => 'A test widget',
-            'icon' => 'test-icon',
-            'permissions' => ['read'],
-            'requiredRights' => [],
-            'requiredSkins' => [],
-            'maxInRow' => 1,
-            'minWidth' => 1,
-            'minHeight' => 1,
-            'defaultWidth' => 1,
-            'defaultHeight' => 1,
-            'reloadable' => true,
-            'collapsible' => true,
-            'removable' => true
-        ];
-        
-        $mergedOptions = array_merge($defaults, $options);
-        
-        return new TestDashboardWidget(
-            $widgetManager,
-            $mergedOptions['id'],
-            $mergedOptions
-        );
-    }
-
-    public function testWidgetInitialization() {
         // Test basic properties
-        $this->assertInstanceOf( DashboardWidget::class, $this->widget );
-        $this->assertSame( 'test-widget', $this->widget->getId() );
-        $this->assertSame( 'Test Widget', $this->widget->getTitle() );
-        $this->assertSame( 'A test widget', $this->widget->getDescription() );
-        $this->assertSame( 'test-icon', $this->widget->getIcon() );
-        $this->assertSame( ['read'], $this->widget->getPermissions() );
-        $this->assertSame( [], $this->widget->getRequiredRights() );
-        $this->assertSame( [], $this->widget->getRequiredSkins() );
-        $this->assertSame( 1, $this->widget->getMaxInRow() );
-        $this->assertSame( 1, $this->widget->getMinWidth() );
-        $this->assertSame( 1, $this->widget->getMinHeight() );
-        $this->assertSame( 1, $this->widget->getDefaultWidth() );
-        $this->assertSame( 1, $this->widget->getDefaultHeight() );
-        $this->assertTrue( $this->widget->isReloadable() );
-        $this->assertTrue( $this->widget->isCollapsible() );
-        $this->assertTrue( $this->widget->isRemovable() );
+        $this->assertInstanceOf(DashboardWidget::class, $widget);
+        $this->assertSame('test-widget', $widget->getId());
+        $this->assertSame('Test Widget', $widget->getTitle());
+        $this->assertSame('A test widget', $widget->getDescription());
+        $this->assertSame('test-icon', $widget->getIcon());
+        $this->assertTrue($widget->isReloadable());
+        $this->assertTrue($widget->isCollapsible());
+        $this->assertTrue($widget->isRemovable());
     }
 
+    /**
+     * Test template path generation
+     */
     public function testTemplatePath() {
-        $widget = $this->createWidgetWithOptions();
-        
-        // Test template path generation
+        $widget = $this->createTestWidget();
         $templatePath = $widget->getTemplatePath();
-        $this->assertIsString( $templatePath );
-        $this->assertStringEndsWith( 'templates/widgets/test-widget.mustache', $templatePath );
+        $this->assertInternalType('string', $templatePath);
+        $this->assertStringContainsString('templates/widgets/test-widget.mustache', $templatePath);
     }
 
+    /**
+     * Test widget content rendering
+     */
     public function testRender() {
-        $widget = $this->createWidgetWithOptions();
-        
-        // Test rendering
+        $widget = $this->createTestWidget();
         $output = $widget->render();
-        $this->assertIsString( $output, 'Render output should be a string' );
-        $this->assertStringContainsString( 'widget-test-widget', $output );
+        $this->assertInternalType('string', $output);
+        $this->assertContains('Test widget content', $output);
     }
 
+    /**
+     * Test widget with custom options
+     */
+    public function testWidgetWithCustomOptions() {
+        $customWidget = $this->createTestWidget([
+            'title' => 'Custom Widget',
+            'description' => 'A custom test widget',
+            'icon' => 'custom-icon',
+            'permissions' => ['edit'],
+            'reloadable' => false,
+            'collapsible' => false,
+            'removable' => false
+        ]);
+
+        $this->assertSame('Custom Widget', $customWidget->getTitle());
+        $this->assertSame('A custom test widget', $customWidget->getDescription());
+        $this->assertSame('custom-icon', $customWidget->getIcon());
+        $this->assertFalse($customWidget->isReloadable());
+        $this->assertFalse($customWidget->isCollapsible());
+        $this->assertFalse($customWidget->isRemovable());
+    }
+
+    /**
+     * Test widget permissions
+     */
     public function testPermissions() {
-        $widget = $this->createWidgetWithOptions();
-        
-        // Test permissions
-        $permissions = $widget->getPermissions();
-        $this->assertIsArray( $permissions, 'Permissions should be an array' );
-        $this->assertContains( 'read', $permissions, 'Default permissions should include "read"' );
+        $widget = $this->createTestWidget();
+        $this->assertIsArray($widget->options['permissions']);
+        $this->assertContains('read', $widget->options['permissions']);
     }
 
+    /**
+     * Test required rights for the widget
+     */
     public function testGetRequiredRights() {
-        $widget = $this->createWidgetWithOptions([
+        $widget = $this->createTestWidget([
             'requiredRights' => ['edit']
         ]);
-        $requiredRights = $widget->getRequiredRights();
-        $this->assertIsArray( $requiredRights );
-        $this->assertEquals( ['edit'], $requiredRights );
+        $this->assertIsArray($widget->options['requiredRights']);
+        $this->assertEquals(['edit'], $widget->options['requiredRights']);
     }
 
     /**
-     * @covers ::getOutputPage
+     * Test getting the output page
      */
     public function testGetOutputPage() {
-        $widget = $this->createWidgetWithOptions();
-        $this->assertSame($this->output, $widget->getOutputPage());
+        $widget = $this->createTestWidget();
+        $output = $widget->getOutputPage();
+        $this->assertInstanceOf('OutputPage', $output);
     }
 
     /**

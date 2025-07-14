@@ -2,7 +2,7 @@
 
 [![License: GPL-3.0-or-later](https://img.shields.io/badge/License-GPL%20v3+-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 [![MediaWiki: 1.43+](https://img.shields.io/badge/MediaWiki-1.43%2B-blue.svg)](https://www.mediawiki.org/)
-[![Version](https://img.shields.io/badge/Version-0.1.0-blue)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/Version-0.3.0-blue)](CHANGELOG.md)
 [![Code Style](https://img.shields.io/badge/code%20style-MediaWiki-brightgreen)](https://www.mediawiki.org/wiki/Manual:Coding_conventions)
 
 A modern, extensible user dashboard extension for MediaWiki, featuring modular widgets, responsive navigation, and seamless integration with the Islam Skin. The dashboard provides users with a personalized interface to access important information and perform common tasks efficiently.
@@ -42,6 +42,8 @@ A modern, extensible user dashboard extension for MediaWiki, featuring modular w
 - Composer (for development)
 - Node.js 16+ (for frontend development)
 
+> **Note**: For development, ensure your environment meets all the requirements. The extension follows MediaWiki's coding standards and best practices for version 1.43+.
+
 ## 📥 Installation
 
 1. Clone this repository into your `extensions/` directory:
@@ -59,35 +61,54 @@ A modern, extensible user dashboard extension for MediaWiki, featuring modular w
    php maintenance/update.php
    ```
 
+4. Clear your browser cache and the MediaWiki cache:
+   ```bash
+   php maintenance/rebuildLocalisationCache.php
+   php maintenance/runJobs.php
+   ```
+
+5. The dashboard will be available at `Special:IslamDashboard` for users with the appropriate permissions.
+
 ## 🏗️ Project Structure
 
 ```
 extensions/IslamDashboard/
 ├── docs/                     # Comprehensive documentation
-│   ├── API_REFERENCE.md     # API documentation
-│   ├── ARCHITECTURE.md      # System architecture
-│   ├── CONFIGURATION.md     # Configuration options
-│   ├── DEVELOPMENT.md       # Development guide
-│   ├── NAVIGATION_SPEC.md   # Navigation system specs
-│   └── WIDGETS.md           # Widget development guide
+│   ├── api/                 # API documentation
+│   │   ├── endpoints.md     # API endpoints reference
+│   │   └── reference.md     # API reference
+│   ├── architecture/        # System architecture
+│   │   ├── navigation.md    # Navigation system
+│   │   └── overview.md      # High-level architecture
+│   ├── development/         # Development guides
+│   │   ├── configuration.md # Configuration options
+│   │   ├── i18n.md         # Internationalization guide
+│   │   ├── special_pages.md # Special pages documentation
+│   │   ├── testing.md      # Testing guide
+│   │   ├── versioning.md   # Versioning process
+│   │   └── widgets.md      # Widget development
+│   └── releases/           # Release notes
+│       └── REL0_3_0.md     # Version 0.3.0 release notes
 ├── i18n/                    # Internationalization files
-├── includes/                # Core PHP classes
-│   ├── Navigation/         # Navigation system
-│   └── Widgets/            # Widget implementations
-├── resources/               # Frontend assets
-│   ├── modules/            # Core JavaScript modules
-│   ├── styles/             # Core styles and theming
-│   │   └── widgets/        # Widget-specific styles
-│   └── widgets/            # Widget-specific JavaScript
-├── templates/               # Mustache templates
-│   └── widgets/            # Widget templates
-├── tests/                   # Test suites
-│   ├── phpunit/           # PHPUnit tests
-│   └── qunit/             # QUnit tests
-├── CHANGELOG.md            # Version history
-├── composer.json           # PHP dependencies
-├── extension.json          # Extension manifest
-└── README.md               # This file
+├── resources/              # Frontend assets
+│   ├── modules/           # Core JavaScript modules
+│   └── styles/            # Core styles and theming
+│       └── widgets/       # Widget-specific styles
+├── src/                   # PHP source code (PSR-4 autoloaded)
+│   ├── Hooks/            # Hook handlers
+│   ├── Navigation/       # Navigation system
+│   ├── Special/          # Special pages
+│   ├── Widgets/          # Widget implementations
+│   └── WidgetManager.php # Widget management
+├── templates/            # Mustache templates
+│   └── widgets/         # Widget templates
+├── tests/                # Test suites
+│   ├── phpunit/         # PHPUnit tests
+│   └── qunit/           # QUnit tests
+├── CHANGELOG.md         # Version history
+├── composer.json        # PHP dependencies
+├── extension.json       # Extension manifest
+└── README.md            # This file
 ```
 
 ## 🛠️ Development
@@ -176,12 +197,16 @@ Comprehensive documentation is available in the `docs/` directory:
 
 | Document | Description |
 |----------|-------------|
-| [ARCHITECTURE.md](docs/ARCHITECTURE.md) | System architecture and design decisions |
-| [WIDGETS.md](docs/WIDGETS.md) | Guide to creating and customizing widgets |
-| [API_REFERENCE.md](docs/API_REFERENCE.md) | Available APIs, hooks, and events |
-| [CONFIGURATION.md](docs/CONFIGURATION.md) | Configuration options and customization |
-| [DEVELOPMENT.md](docs/DEVELOPMENT.md) | Setting up a development environment |
-| [NAVIGATION_SPEC.md](docs/NAVIGATION_SPEC.md) | Navigation system specifications |
+| [Architecture Overview](docs/architecture/overview.md) | System architecture and design decisions |
+| [Widget Development](docs/development/widgets.md) | Guide to creating and customizing widgets |
+| [API Reference](docs/api/reference.md) | Available APIs, hooks, and events |
+| [Configuration](docs/development/configuration.md) | Configuration options and customization |
+| [Development Guide](docs/development/guide.md) | Setting up a development environment |
+| [Navigation System](docs/architecture/navigation.md) | Navigation system specifications |
+| [Special Pages](docs/development/special_pages.md) | Documentation for special pages |
+| [Testing](docs/development/testing.md) | Testing guidelines and procedures |
+| [Versioning](docs/development/versioning.md) | Versioning and release process |
+| [Internationalization](docs/development/i18n.md) | Internationalization and localization guide |
 
 ## 🤝 Contributing
 

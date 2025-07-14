@@ -22,9 +22,11 @@
         "fix": "phpcbf"
     },
     "autoload": {
+        "psr-4": {
+            "MediaWiki\\Extension\\IslamDashboard\\": "src/"
+        },
         "classmap": [
-            "includes/",
-            "SpecialDashboard.php"
+            "includes/"
         ]
     },
     "config": {

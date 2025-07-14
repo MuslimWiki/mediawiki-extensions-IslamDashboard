@@ -444,7 +444,7 @@ navigation.addItem('content', {
 
 ## 4. Integration with Existing Code
 
-### 4.1. SpecialDashboard Updates
+### 4.1. SpecialIslamDashboard Updates
 
 1. Update `getNavigationMenuHTML()` to use the new NavigationManager
 2. Add methods for handling AJAX content loading

@@ -7,11 +7,12 @@
  * @license GPL-3.0-or-later
  */
 
-namespace MediaWiki\Extension\IslamDashboard;
+namespace MediaWiki\Extension\IslamDashboard\Hooks;
 
 use MediaWiki\MediaWikiServices;
 use MediaWiki\Extension\IslamDashboard\WidgetManager;
 use MediaWiki\SpecialPage\SpecialPage;
+// Special page hooks
 use OutputPage;
 use Skin;
 use SkinTemplate;
@@ -21,7 +22,7 @@ use DatabaseUpdater;
 
 class IslamDashboardHooks {
     /**
-     * Add dashboard link to user menu
+     * Add IslamDashboard link to user menu
      *
      * @param SkinTemplate $sktemplate Skin template object
      * @param array &$links Navigation links
@@ -32,7 +33,7 @@ class IslamDashboardHooks {
     }
     
     /**
-     * Add dashboard link to user menu (legacy)
+     * Add IslamDashboard link to user menu (legacy)
      *
      * @param SkinTemplate $sktemplate Skin template object
      * @param array &$links Navigation links
@@ -41,18 +42,18 @@ class IslamDashboardHooks {
     public static function onSkinTemplateNavigation( $sktemplate, &$links ) {
         global $wgIslamDashboardShowInUserMenu;
         
-        // Check if dashboard should be shown in user menu
+        // Check if IslamDashboard should be shown in user menu
         if ( !$wgIslamDashboardShowInUserMenu ) {
             return true;
         }
         
-        // Add dashboard link to user menu
+        // Add IslamDashboard link to user menu
         if ( isset( $links['user-menu'] ) ) {
-            $links['user-menu']['dashboard'] = [
-                'text' => wfMessage( 'islamdashboard-dashboard' )->text(),
-                'href' => SpecialPage::getTitleFor( 'Dashboard' )->getLocalURL(),
-                'class' => 'dashboard-link',
-                'active' => ( $sktemplate->getTitle()->isSpecial( 'Dashboard' ) )
+            $links['user-menu']['IslamDashboard'] = [
+                'text' => wfMessage( 'islamdashboard-IslamDashboard' )->text(),
+                'href' => SpecialPage::getTitleFor( 'IslamDashboard' )->getLocalURL(),
+                'class' => 'IslamDashboard-link',
+                'active' => ( $sktemplate->getTitle()->isSpecial( 'IslamDashboard' ) )
             ];
         }
         
@@ -60,20 +61,18 @@ class IslamDashboardHooks {
     }
     
     /**
-     * Add dashboard modules to the page
+     * Add IslamDashboard modules to the page
      *
      * @param OutputPage $out Output page object
      * @param Skin $skin Skin object
      * @return bool Always true
      */
-    /**
-     * @param OutputPage $out
-     * @param Skin $skin
-     */
     public static function onBeforePageDisplay( OutputPage $out, Skin $skin ) {
-        // Only add modules on the dashboard page
-        if ( $out->getTitle()->isSpecial( 'Dashboard' ) ) {
-            $out->addModules( 'ext.islamDashboard' );
+        // Add IslamDashboard styles and scripts to all pages
+        $out->addModules( 'ext.islamDashboard' );
+        
+        // Only add modules on the IslamDashboard page
+        if ( $out->getTitle()->isSpecial( 'IslamDashboard' ) ) {
             $out->addModuleStyles( 'ext.islamDashboard.styles' );
             
             // Add widget-specific modules
@@ -95,10 +94,12 @@ class IslamDashboardHooks {
             
             $out->addJsConfigVars( 'wgIslamDashboard', $widgetData );
         }
+        
+        return true;
     }
     
     /**
-     * Add dashboard link to personal URLs
+     * Add IslamDashboard link to personal URLs
      *
      * @param array &$personal_urls Array of personal URLs
      * @param Title &$title Title of the current page
@@ -108,22 +109,59 @@ class IslamDashboardHooks {
     public static function onPersonalUrls( &$personal_urls, &$title, $sktemplate ) {
         global $wgIslamDashboardShowInUserMenu;
         
-        // Check if dashboard should be shown in personal URLs
+        // Check if IslamDashboard should be shown in personal URLs
         if ( !$wgIslamDashboardShowInUserMenu ) {
             return true;
         }
         
-        // Add dashboard link to personal URLs
+        // Add IslamDashboard link to personal URLs
         $personal_urls = array_merge(
-            [ 'dashboard' => [
-                'text' => wfMessage( 'islamdashboard-dashboard' )->text(),
-                'href' => SpecialPage::getTitleFor( 'Dashboard' )->getLocalURL(),
-                'active' => $title->isSpecial( 'Dashboard' )
+            [ 'IslamDashboard' => [
+                'text' => wfMessage( 'islamdashboard-IslamDashboard' )->text(),
+                'href' => SpecialPage::getTitleFor( 'IslamDashboard' )->getLocalURL(),
+                'active' => $title->isSpecial( 'IslamDashboard' )
             ] ],
             $personal_urls
         );
         
         return true;
+    }
+    
+    /**
+     * Handle SpecialPage_initList hook
+     * 
+     * @param array &$list List of special pages
+     * @return void
+     */
+    public static function onSpecialPage_initList( array &$list ) {
+        global $wgOut;
+        
+        try {
+            // Register the special page with only the required services
+            $list['IslamDashboard'] = [
+                'class' => 'MediaWiki\\Extension\\IslamDashboard\\Special\\SpecialIslamDashboard',
+                'services' => [
+                    'DBLoadBalancer',
+                    'LinkRenderer',
+                    'UserOptionsLookup',
+                    'UserOptionsManager',
+                    'TitleFactory',
+                    'UserFactory',
+                    'PermissionManager',
+                    'NamespaceInfo',
+                    'SpecialPageFactory'
+                ]
+            ];
+            
+        } catch ( \Exception $e ) {
+            // Log the error but don't break the page
+            $errorMsg = 'Error registering IslamDashboard special page: ' . $e->getMessage();
+            wfDebugLog( 'IslamDashboard', $errorMsg );
+            if ( $wgOut ) {
+                $wgOut->addHTML( '<!-- ' . htmlspecialchars( $errorMsg ) . ' -->' );
+            }
+            unset( $list['IslamDashboard'] );
+        }
     }
     
     /**
@@ -163,9 +201,9 @@ class IslamDashboardHooks {
         // Register API modules
         $wgAPIModules['islamdashboard'] = 'MediaWiki\\Extension\\IslamDashboard\\ApiIslamDashboard';
         
-        // Register special page
-        $wgSpecialPages['Dashboard'] = 'MediaWiki\\Extension\\IslamDashboard\\SpecialDashboard';
-        $wgSpecialPageGroups['Dashboard'] = 'login';
+        // Register special page with correct namespace and group
+        $wgSpecialPages['IslamDashboard'] = 'MediaWiki\\Extension\\IslamDashboard\\Special\\SpecialIslamDashboard';
+        $wgSpecialPageGroups['IslamDashboard'] = 'users';
         
         // Update global scope
         $GLOBALS['wgMessagesDirs'] = $wgMessagesDirs;
@@ -233,7 +271,8 @@ class IslamDashboardHooks {
             'UserGetRights',
             'LoadExtensionSchemaUpdates',
             'GetAllRights',
-            'GetPermissions'
+            'GetPermissions',
+            'SpecialPage_initList'
         ];
         
         foreach ( $hookNames as $hook ) {
@@ -255,18 +294,18 @@ class IslamDashboardHooks {
     }
     
     /**
-     * Register dashboard preferences
+     * Register IslamDashboard preferences
      *
      * @param User $user User object
      * @param array &$prefs Preferences array
      * @return bool Always true
      */
     public static function onGetPreferences( $user, &$prefs ) {
-        // Add dashboard preferences section
+        // Add IslamDashboard preferences section
         $prefs['islamdashboard-prefs'] = [
             'type' => 'api',
             'label-message' => 'islamdashboard-prefs',
-            'section' => 'personal/dashboard',
+            'section' => 'personal/IslamDashboard',
             'help-message' => 'islamdashboard-prefs-help',
             'preferences' => [
                 'islamdashboard-layout' => [
@@ -288,20 +327,20 @@ class IslamDashboardHooks {
     }
     
     /**
-     * Register dashboard permissions
+     * Register IslamDashboard permissions
      *
      * @param array &$permissions Array of permissions
      * @return bool Always true
      */
     /**
-     * Add dashboard permissions
+     * Add IslamDashboard permissions
      *
      * @param User $user User object
      * @param array &$permissions Array of permissions
      * @return bool Always true
      */
     /**
-     * Add dashboard permissions to user
+     * Add IslamDashboard permissions to user
      *
      * @param User $user User object
      * @param array &$permissions Array of permissions (passed by reference)
@@ -315,7 +354,7 @@ class IslamDashboardHooks {
             $permissions = [];
         }
         
-        // Add dashboard-specific permissions if user has the required rights
+        // Add IslamDashboard-specific permissions if user has the required rights
         if ( $user->isAllowed( 'viewdashboard' ) ) {
             $permissions[] = 'viewdashboard';
         }
@@ -332,13 +371,13 @@ class IslamDashboardHooks {
     }
     
     /**
-     * Add dashboard permissions to the list of available rights
+     * Add IslamDashboard permissions to the list of available rights
      *
      * @param array &$rights Array of rights
      * @return bool Always true
      */
     /**
-     * Add dashboard permissions to the list of all available rights
+     * Add IslamDashboard permissions to the list of all available rights
      *
      * @param array &$rights Array of rights (passed by reference)
      * @return bool Always true
@@ -349,7 +388,7 @@ class IslamDashboardHooks {
             $rights = [];
         }
         
-        // Add dashboard-specific rights
+        // Add IslamDashboard-specific rights
         $dashboardRights = [
             'viewdashboard',
             'customizedashboard',
@@ -367,13 +406,13 @@ class IslamDashboardHooks {
     }
     
     /**
-     * Register dashboard permissions with the Permissions Manager
+     * Register IslamDashboard permissions with the Permissions Manager
      *
      * @param array &$permissions Array of permissions
      * @return bool Always true
      */
     /**
-     * Register dashboard permissions with the Permissions Manager
+     * Register IslamDashboard permissions with the Permissions Manager
      *
      * @param array &$permissions Array of permissions (passed by reference)
      * @return bool Always true
@@ -384,7 +423,7 @@ class IslamDashboardHooks {
             $permissions = [];
         }
         
-        // Define dashboard permissions
+        // Define IslamDashboard permissions
         $dashboardPermissions = [
             'viewdashboard' => [
                 'text' => wfMessage( 'islamdashboard-right-viewdashboard' )->text(),

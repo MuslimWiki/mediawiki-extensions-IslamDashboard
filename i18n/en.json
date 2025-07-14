@@ -1,14 +1,14 @@
 {
     "@metadata": {
         "authors": [
-            "Muslim.Wiki Team"
+            "MuslimWiki Foundation"
         ],
         "lastupdated": "2025-07-12",
         "locale": "en",
         "messagedocumentation": "qqq"
     },
     "islamdashboard": "Dashboard",
-    "islamdashboard-desc": "A comprehensive user dashboard for MediaWiki",
+    "islamdashboard-desc": "A comprehensive user dashboard for MuslimWiki",
     "islamdashboard-welcome": "Welcome back, $1",
     "islamdashboard-member-since": "Member since $1",
     "islamdashboard-edit-count": "{{PLURAL:$1|$1 edit|$1 edits}}",
@@ -40,6 +40,9 @@
     "islamdashboard-welcome-back": "Welcome back, $1!",
     "islamdashboard-welcome-subtitle": "Here's what's happening with your account today",
     "islamdashboard-welcome-message": "Thank you for contributing to our community. Here's a quick overview of your recent activity.",
+    "specialpages-group-custom": "Islam Wiki Tools",
+    "special-islamdashboard": "Dashboard",
+    "specialpages-islamdashboard": "Dashboard",
     "islamdashboard-stats-edits": "Total Edits",
     "islamdashboard-stats-days": "Days as Member",
     "islamdashboard-stats-recent": "Recent Edits (7d)",

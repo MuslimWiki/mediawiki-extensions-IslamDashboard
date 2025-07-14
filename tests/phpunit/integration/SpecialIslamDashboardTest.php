@@ -1,11 +1,11 @@
 <?php
 /**
- * @covers \MediaWiki\Extension\IslamDashboard\SpecialDashboard
+ * @covers \MediaWiki\Extension\IslamDashboard\SpecialIslamDashboard
  */
 
 namespace MediaWiki\Extension\IslamDashboard\Tests\Integration;
 
-use MediaWiki\Extension\IslamDashboard\SpecialDashboard;
+use MediaWiki\Extension\IslamDashboard\SpecialIslamDashboard;
 use MediaWiki\MediaWikiServices;
 use MediaWiki\Tests\Integration\Permissions\MockAuthorityTrait;
 use MediaWikiIntegrationTestCase;
@@ -15,13 +15,13 @@ use User;
 
 /**
  * @group IslamDashboard
- * @coversDefaultClass \MediaWiki\Extension\IslamDashboard\SpecialDashboard
+ * @coversDefaultClass \MediaWiki\Extension\IslamDashboard\SpecialIslamDashboard
  * @group Database
  */
-class SpecialDashboardTest extends MediaWikiIntegrationTestCase {
+class SpecialIslamDashboardTest extends MediaWikiIntegrationTestCase {
     use MockAuthorityTrait;
     
-    /** @var SpecialDashboard */
+    /** @var SpecialIslamDashboard */
     private $specialPage;
     
     /** @var User */
@@ -58,7 +58,7 @@ class SpecialDashboardTest extends MediaWikiIntegrationTestCase {
         $this->context->setUser( $this->testUser );
         
         // Create the special page
-        $this->specialPage = new SpecialDashboard();
+        $this->specialPage = new SpecialIslamDashboard();
         $this->specialPage->setContext( $this->context );
     }
     
@@ -75,7 +75,7 @@ class SpecialDashboardTest extends MediaWikiIntegrationTestCase {
      * @covers ::__construct
      */
     public function testConstructor() {
-        $this->assertInstanceOf( SpecialDashboard::class, $this->specialPage );
+        $this->assertInstanceOf( SpecialIslamDashboard::class, $this->specialPage );
     }
 
     /**

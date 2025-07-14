@@ -5,6 +5,36 @@ All notable changes to the IslamDashboard extension will be documented in this f
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.0] - 2025-07-14
+### Added
+- Proper special page registration for IslamDashboard
+- Dependency injection for database connections using ILoadBalancer
+- Factory pattern implementation for service instantiation
+- Comprehensive error handling for recent changes display
+- Detailed architecture documentation in `docs/architecture/`
+- Development guides in `docs/development/`
+- API documentation in `docs/api/`
+- Release notes for version 0.3.0
+
+### Changed
+- Updated to use MediaWiki 1.43+ coding standards
+- Refactored database queries to use modern SelectQueryBuilder
+- Improved title handling and validation
+- Updated layout structure in preparation for three-column display (not yet functional)
+- Reorganized documentation structure for better maintainability
+- Updated README.md with current project structure and documentation links
+
+### Fixed
+- Resolved special page visibility issues
+- Fixed database query compatibility with MediaWiki 1.43+
+- Addressed all deprecation warnings
+- Fixed documentation links and references
+- Removed duplicate service registrations in Hooks.php
+
+### Known Issues
+- Three-column display is not yet functional (planned for next release)
+- Some layout and styling issues may be present in the dashboard interface
+
 ## [0.2.2] - 2025-07-13
 ### Added
 - Comprehensive documentation for API endpoints and usage
@@ -74,7 +104,9 @@ https://github.com/MuslimWiki/IslamDashboard/compare/v0.0.1...v0.0.2
 - Documentation for the navigation system
 
 ### Changed
-- Updated SpecialDashboard to use the new navigation system
+- Renamed SpecialDashboard to SpecialIslamDashboard for consistency with MediaWiki naming conventions
+- Updated all references in code, tests, and documentation
+- Fixed PSR-4 autoloading in composer.json
 - Improved accessibility with ARIA attributes
 - Enhanced user experience with smooth animations
 

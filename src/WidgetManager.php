@@ -34,8 +34,9 @@ class WidgetManager {
      * @return self
      */
     public static function getInstance() {
-        if ( self::$instance === null ) {
+        if (self::$instance === null) {
             self::$instance = new self();
+            self::$instance->initialize();
         }
         return self::$instance;
     }
@@ -51,7 +52,7 @@ class WidgetManager {
      * Initialize the widget manager
      */
     private function initialize() {
-        if ( $this->initialized ) {
+        if ($this->initialized) {
             return;
         }
         
@@ -59,6 +60,8 @@ class WidgetManager {
         $this->registerCoreWidgets();
         
         // Allow extensions to register their own widgets
+        MediaWikiServices::getInstance()->getHookContainer()->run('IslamDashboardRegisterWidgets', [ $this ]);
+        
         $this->initialized = true;
     }
     
@@ -66,9 +69,16 @@ class WidgetManager {
      * Register core widgets
      */
     private function registerCoreWidgets() {
-        $this->registerWidget( new Widgets\WelcomeWidget() );
-        $this->registerWidget( new Widgets\RecentActivityWidget() );
-        $this->registerWidget( new Widgets\QuickActionsWidget() );
+        // Use fully qualified class names with use statements at the top
+        $widgets = [
+            new WelcomeWidget(),
+            new RecentActivityWidget(),
+            new QuickActionsWidget()
+        ];
+        
+        foreach ($widgets as $widget) {
+            $this->registerWidget($widget);
+        }
     }
     
     /**

@@ -437,7 +437,7 @@ mw.islamDashboard.registerWidget('example-widget', {
 
 ## PHP API
 
-### `\MediaWiki\Extension\IslamDashboard\SpecialDashboard`
+### `\MediaWiki\Extension\IslamDashboard\SpecialIslamDashboard`
 Main special page class for the dashboard.
 
 #### Methods
@@ -726,7 +726,7 @@ class HelloWorldWidget extends DashboardWidget {
 
 4. Add the widget to the dashboard:
 ```php
-$dashboard = new \MediaWiki\Extension\IslamDashboard\SpecialDashboard();
+$dashboard = new \MediaWiki\Extension\IslamDashboard\SpecialIslamDashboard();
 $dashboard->addWidget('HelloWorld', ['position' => 'main']);
 ```
 

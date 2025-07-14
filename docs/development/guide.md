@@ -62,17 +62,19 @@ extensions/IslamDashboard/
 ├── tests/                # Test suites
 ├── Hooks.php            # Hook handlers
 ├── IslamDashboard.php   # Extension setup
-└── SpecialDashboard.php # Special page implementation
+└── SpecialIslamDashboard.php # Special page implementation
 ```
 
 ## Adding New Widgets
 
 1. **Create a Widget Class**
-   Create a new class in `includes/Widgets/` that extends `DashboardWidget`:
+   Create a new class in `src/Widgets/` that extends `DashboardWidget`:
 
    ```php
    <?php
    namespace MediaWiki\Extension\IslamDashboard\Widgets;
+
+   use MediaWiki\Extension\IslamDashboard\Widgets\DashboardWidget;
 
    class MyCustomWidget extends DashboardWidget {
        public function __construct() {

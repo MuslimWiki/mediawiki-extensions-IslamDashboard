@@ -8,7 +8,7 @@ The IslamDashboard extension follows a modular architecture designed for extensi
 
 ### 1. Entry Points
 - `IslamDashboard.php`: Main extension file with hooks and setup
-- `SpecialDashboard.php`: Special page for the main dashboard interface
+- `SpecialIslamDashboard.php`: Special page for the main dashboard interface
 - `Hooks/`: Contains all hook handlers
 
 ### 2. Backend
@@ -34,7 +34,7 @@ The IslamDashboard extension follows a modular architecture designed for extensi
 ## Data Flow
 
 1. User requests the dashboard (Special:Dashboard)
-2. SpecialDashboard class initializes
+2. SpecialIslamDashboard class initializes
 3. Loads user-specific configuration
 4. Fetches data for enabled modules
 5. Renders the dashboard using the appropriate template

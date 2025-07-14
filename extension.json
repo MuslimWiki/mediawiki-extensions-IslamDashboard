@@ -1,7 +1,7 @@
 {
     "name": "IslamDashboard",
-    "version": "0.2.2",
-    "author": "Muslim.Wiki Team",
+    "version": "0.3.0",
+    "author": "MuslimWiki Foundation",
     "url": "https://www.mediawiki.org/wiki/Extension:IslamDashboard",
     "description": "A comprehensive dashboard for MediaWiki with widgets and user customization",
     "descriptionmsg": "islamdashboard-desc",
@@ -10,17 +10,42 @@
     "requires": {
         "MediaWiki": ">= 1.43.0"
     },
+    "AutoloadNamespaces": {
+        "MediaWiki\\Extension\\IslamDashboard\\": "src/"
+    },
     "AutoloadClasses": {
-        "MediaWiki\\Extension\\IslamDashboard\\Hooks": "includes/Hooks.php",
-        "MediaWiki\\Extension\\IslamDashboard\\SpecialDashboard": "includes/SpecialDashboard.php"
+        "MediaWiki\\Extension\\IslamDashboard\\Hooks": "src/Hooks/Hooks.php",
+        "MediaWiki\\Extension\\IslamDashboard\\Special\\SpecialIslamDashboard": "src/Special/SpecialIslamDashboard.php",
+        "MediaWiki\\Extension\\IslamDashboard\\WidgetManager": "src/WidgetManager.php",
+        "MediaWiki\\Extension\\IslamDashboard\\Navigation\\NavigationManager": "includes/Navigation/NavigationManager.php",
+        "MediaWiki\\Extension\\IslamDashboard\\Navigation\\NavigationRenderer": "includes/Navigation/NavigationRenderer.php"
     },
     "Hooks": {
-        "BeforePageDisplay": "MediaWiki\\Extension\\IslamDashboard\\Hooks::onBeforePageDisplay",
-        "LoadExtensionSchemaUpdates": "MediaWiki\\Extension\\IslamDashboard\\Hooks::onLoadExtensionSchemaUpdates"
+        "BeforePageDisplay": "MediaWiki\\Extension\\IslamDashboard\\Hooks\\Hooks::onBeforePageDisplay",
+        "LoadExtensionSchemaUpdates": "MediaWiki\\Extension\\IslamDashboard\\Hooks\\Hooks::onLoadExtensionSchemaUpdates",
+        "SkinTemplateNavigation::Universal": "MediaWiki\\Extension\\IslamDashboard\\Hooks\\Hooks::onSkinTemplateNavigationUniversal",
+        "SkinTemplateNavigation": "MediaWiki\\Extension\\IslamDashboard\\Hooks\\Hooks::onSkinTemplateNavigation",
+        "SpecialPage_initList": "MediaWiki\\Extension\\IslamDashboard\\Hooks\\Hooks::onSpecialPage_initList"
+    },
+    "SpecialPages": {
+        "IslamDashboard": {
+            "class": "MediaWiki\\Extension\\IslamDashboard\\Special\\SpecialIslamDashboard",
+            "services": ["DBLoadBalancer"]
+        }
+    },
+    "ExtensionMessagesFiles": {
+        "IslamDashboardAlias": "IslamDashboard.alias.php"
     },
     "MessagesDirs": {
         "IslamDashboard": ["i18n"]
     },
+    "GroupPermissions": {
+        "user": {
+            "viewdashboard": true
+        }
+    },
+    "AvailableRights": ["viewdashboard"],
+    "manifest_version": 2,
     "ResourceModules": {
         "ext.islamDashboard": {
             "scripts": ["resources/modules/ext.islamDashboard.js"],
@@ -32,6 +57,5 @@
     "ResourceFileModulePaths": {
         "localBasePath": "",
         "remoteExtPath": "IslamDashboard"
-    },
-    "manifest_version": 2
+    }
 }
