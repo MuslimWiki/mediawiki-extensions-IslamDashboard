@@ -5,6 +5,28 @@ All notable changes to the IslamDashboard extension will be documented in this f
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.1] - 2025-07-14
+### Added
+- Added IslamCore as a required dependency for shared services and security
+- New migration guide for upgrading to version 0.3.1
+- Documentation updates to reflect new architecture
+- Integration with IslamCore's widget management system
+- New hooks for extension developers
+- Enhanced security features through IslamCore
+- Improved internationalization support with RTL language handling
+
+### Changed
+- Moved shared services and utilities to IslamCore
+- Updated widget system to use IslamCore's widget manager
+- Refactored configuration to work with IslamCore's settings
+- Updated documentation to reference IslamCore
+- Improved error handling and logging using IslamCore's services
+
+### Fixed
+- Resolved widget loading issues with new architecture
+- Fixed compatibility with IslamCore's security model
+- Addressed performance issues in widget rendering
+
 ## [0.3.0] - 2025-07-14
 ### Added
 - Proper special page registration for IslamDashboard

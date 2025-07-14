@@ -2,8 +2,9 @@
 
 [![License: GPL-3.0-or-later](https://img.shields.io/badge/License-GPL%20v3+-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 [![MediaWiki: 1.43+](https://img.shields.io/badge/MediaWiki-1.43%2B-blue.svg)](https://www.mediawiki.org/)
-[![Version](https://img.shields.io/badge/Version-0.3.0-blue)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/Version-0.3.1-blue)](CHANGELOG.md)
 [![Code Style](https://img.shields.io/badge/code%20style-MediaWiki-brightgreen)](https://www.mediawiki.org/wiki/Manual:Coding_conventions)
+[![Requires IslamCore](https://img.shields.io/badge/Requires-IslamCore-orange)](https://github.com/muslim-wiki/IslamCore)
 
 A modern, extensible user dashboard extension for MediaWiki, featuring modular widgets, responsive navigation, and seamless integration with the Islam Skin. The dashboard provides users with a personalized interface to access important information and perform common tasks efficiently.
 
@@ -24,19 +25,21 @@ A modern, extensible user dashboard extension for MediaWiki, featuring modular w
 ## ✨ Features
 
 - **User-Centric Dashboard**: Personalized dashboard for each user
+- **Built on IslamCore**: Leverages the powerful IslamCore framework for shared services and security
 - **Extensible Widget System**: Modular widgets with Mustache templates
 - **Responsive Navigation**: Collapsible navigation system
 - **Dark Mode**: Built-in theme support
 - **Customizable Layout**: Widget arrangement and preferences
 - **Activity Tracking**: Monitor user contributions and recent activity
 - **Quick Actions**: Easy access to common tasks
-- **Internationalization**: Full i18n support
+- **Internationalization**: Full i18n support with RTL language support
 - **Accessibility**: WCAG 2.1 compliant components
 
 ## 🚀 Requirements
 
 - PHP 8.0+
 - MediaWiki 1.43+
+- [IslamCore](https://github.com/muslim-wiki/IslamCore) (required)
 - [Codex](https://doc.wikimedia.org/codex/) (for UI components)
 - [Islam Skin](https://www.mediawiki.org/wiki/Skin:Islam) (recommended)
 - Composer (for development)
@@ -46,6 +49,12 @@ A modern, extensible user dashboard extension for MediaWiki, featuring modular w
 
 ## 📥 Installation
 
+### Prerequisites
+
+1. First, install and enable [IslamCore](https://github.com/muslim-wiki/IslamCore) extension
+
+### Installing IslamDashboard
+
 1. Clone this repository into your `extensions/` directory:
    ```bash
    git clone https://github.com/MuslimWiki/IslamDashboard.git extensions/IslamDashboard
@@ -53,6 +62,10 @@ A modern, extensible user dashboard extension for MediaWiki, featuring modular w
 
 2. Add the following to your `LocalSettings.php`:
    ```php
+   // Load IslamCore first
+   wfLoadExtension( 'IslamCore' );
+
+   // Then load IslamDashboard
    wfLoadExtension( 'IslamDashboard' );
    ```
 
@@ -68,6 +81,22 @@ A modern, extensible user dashboard extension for MediaWiki, featuring modular w
    ```
 
 5. The dashboard will be available at `Special:IslamDashboard` for users with the appropriate permissions.
+
+## 🔧 Configuration
+
+After installation, you can configure the dashboard by adding the following to your LocalSettings.php:
+
+```php
+// Load IslamCore first
+wfLoadExtension( 'IslamCore' );
+
+// Then load IslamDashboard
+wfLoadExtension( 'IslamDashboard' );
+```
+
+### Available Configuration Options
+
+> **Note**: Many core configurations are now handled by IslamCore. Refer to the [IslamCore documentation](https://github.com/muslim-wiki/IslamCore) for more details.
 
 ## 🏗️ Project Structure
 
@@ -169,6 +198,10 @@ npm run dev
 1. **Install the Extension**:
    - Add to `LocalSettings.php`:
      ```php
+     // Load IslamCore first
+     wfLoadExtension( 'IslamCore' );
+
+     // Then load IslamDashboard
      wfLoadExtension( 'IslamDashboard' );
      ```
    - Run the update script:
@@ -193,13 +226,20 @@ npm run dev
 
 ## 📚 Documentation
 
-Comprehensive documentation is available in the `docs/` directory:
+For detailed documentation, please see the [docs](docs/) directory.
 
-| Document | Description |
-|----------|-------------|
-| [Architecture Overview](docs/architecture/overview.md) | System architecture and design decisions |
-| [Widget Development](docs/development/widgets.md) | Guide to creating and customizing widgets |
-| [API Reference](docs/api/reference.md) | Available APIs, hooks, and events |
+### Architecture
+
+IslamDashboard is built on top of the IslamCore framework, which provides essential services and security features. The architecture follows these principles:
+
+1. **Modular Design**: Components are loosely coupled and communicate through well-defined interfaces
+2. **Separation of Concerns**: Clear distinction between presentation, business logic, and data access
+3. **Extensibility**: Easy to add new features through hooks and extensions
+4. **Security**: Built on IslamCore's security model with proper input validation and output escaping
+
+### Migration from Previous Versions
+
+If you're upgrading from a version prior to 0.3.1, please see the [Migration Guide](docs/MIGRATION.md) for important changes and upgrade instructions.
 | [Configuration](docs/development/configuration.md) | Configuration options and customization |
 | [Development Guide](docs/development/guide.md) | Setting up a development environment |
 | [Navigation System](docs/architecture/navigation.md) | Navigation system specifications |
